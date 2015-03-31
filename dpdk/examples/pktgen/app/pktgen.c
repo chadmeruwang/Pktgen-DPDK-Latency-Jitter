@@ -274,6 +274,24 @@ pktgen_send_burst(port_info_t * info, uint16_t qid)
 	do {
 		if ( unlikely(flags & SEND_RANDOM_PKTS) )
 			pktgen_rnd_bits_apply(pkts, cnt, info->rnd_bitfields);
+#ifdef JITTER_CHECK
+                /*
+                 * JITTER: Add timestamp as data to the packet
+                 */
+
+                //uint64_t now = rte_rdtsc();
+                for(i = 0; i < cnt; i++) {
+                  //uint64_t now = rte_rdtsc();
+
+                  //printf("%d\n", pkts[i]->pkt.data_len);
+
+                  //*(uint64_t *)(pkts[i]->pkt.data) = rte_rdtsc();
+                  *(uint64_t *)((char *)(pkts[i]->pkt.data) + pkts[i]->pkt.data_len - 8) = rte_rdtsc();
+                  //*(uint64_t *)(pkts[i]->udata64) = rte_rdtsc();
+                  //rte_memcpy((uint64_t *)(pkts[i]->pkt.data), &now, sizeof(now));
+                }
+                //info->ts_sender = now;
+#endif
 
     	ret = rte_eth_tx_burst(info->pid, qid, pkts, cnt);
 
@@ -981,6 +999,15 @@ pktgen_main_receive(port_info_t * info, uint8_t lid, uint8_t idx, struct rte_mbu
 	int		i;
 	capture_t *capture;
 
+#ifdef JITTER_CHECK
+        /* variables for jitter measurement */
+        uint16_t nb_pkt;
+        uint64_t tx_ts;
+        uint64_t rx_ts;
+        uint64_t time;
+        double latency;
+#endif
+
 	pid = info->pid;
 	qid = wr_get_rxque(pktgen.l2p, lid, idx);
 
@@ -989,6 +1016,24 @@ pktgen_main_receive(port_info_t * info, uint8_t lid, uint8_t idx, struct rte_mbu
 	 */
 	if ( (nb_rx = rte_eth_rx_burst(pid, qid, pkts_burst, info->tx_burst)) == 0 )
 		return;
+#ifdef JITTER_CHECK
+        /*
+         * JITTER: test if rx timestamp
+         */
+
+        rx_ts = rte_rdtsc();
+        time = 0;
+        for(nb_pkt = 0; nb_pkt < nb_rx; nb_pkt++) {
+          //tx_ts = *(uint64_t *)(pkts_burst[nb_pkt]->pkt.data);
+          tx_ts = *(uint64_t *)((char *)(pkts_burst[nb_pkt]->pkt.data) + pkts_burst[nb_pkt]->pkt.data_len - 8);
+          time = time + rx_ts - tx_ts;
+        }
+        latency = (time*1.0/rte_get_timer_hz())*1e6/(nb_rx);
+        info->IPDVariation_us = info->latency_us - latency;
+        info->latency_us = latency;
+        //info->ts_receive = *(uint64_t *)((char *)(pkts_burst[0]->pkt.data) + pkts_burst[0]->pkt.data_len - 8);
+
+#endif
 
 	// packets are not freed in the next call.
 	pktgen_packet_classify_bulk(pkts_burst, nb_rx, pid);

@@ -161,7 +161,15 @@
 #define MAX_STRING              256
 #define Million					(uint64_t)(1000ULL * 1000ULL)
 #define Mega					(uint64_t)(1024ULL * 1024ULL)
-
+/* JITTER measurement*/
+#define JITTER_CHECK 1
+/*
+#define SAMPLE_SIZE 100
+static double latency_array[SAMPLE_SIZE];
+static double jitter_array[SAMPLE_SIZE];
+static unsigned long RxMBit_array[SAMPLE_SIZE];
+static unsigned long long RxPkts_array[SAMPLE_SIZE];
+*/
 #define iBitsTotal(_x) \
     (((_x.ipackets * (INTER_FRAME_GAP + PKT_PREAMBLE_SIZE)) + _x.ibytes) << 3)
 #define oBitsTotal(_x) \

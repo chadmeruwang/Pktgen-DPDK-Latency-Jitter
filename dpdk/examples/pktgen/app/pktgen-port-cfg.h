@@ -198,6 +198,14 @@ typedef struct port_info_s {
 	uint8_t					dump_count;			/**< Number of packets the user requested */
 
 	struct rnd_bits_s	  * rnd_bitfields;		/**< Random bitfield settings */
+  //#ifdef JITTER_CHECK
+  /*jitter metrics*/
+  double latency_us;
+  double IPDVariation_us;
+  uint64_t ts_receive;
+  uint64_t ts_sender;
+  //#endif
+
 } port_info_t;
 
 

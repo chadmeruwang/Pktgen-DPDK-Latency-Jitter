@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) <2010>, Intel Corporation
+ * Copyrightc (c) <2010>, Intel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,6 +70,15 @@
 
 #include "pktgen.h"
 
+#define SAMPLE_SIZE 100
+
+static double latency_array[SAMPLE_SIZE];
+static double jitter_array[SAMPLE_SIZE];
+static unsigned long RxMBit_array[SAMPLE_SIZE];
+static unsigned long long RxPkts_array[SAMPLE_SIZE];
+unsigned long long cur = 0;
+
+
 /**************************************************************************//**
 *
 * pktgen_print_static_data - Display the static data on the screen.
@@ -123,6 +132,14 @@ pktgen_print_static_data(void)
     wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Rx MBs ");
     wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "      Tx MBs ");
     wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "ARP/ICMP Pkts");
+ #ifdef JITTER_CHECK
+    wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Latency  us");
+    wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Jitter(IPDV) us");
+    wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Sample Count");
+    wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "timestamp send");
+    wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "timestamp rece");
+    #endif
+
 	if ( pktgen.flags & TX_DEBUG_FLAG ) {
 		wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Tx Overrun");
 		wr_scrn_printf(row++, 1, "%-*s", COLUMN_WIDTH_0, "Cycles per Tx");
@@ -328,6 +345,34 @@ pktgen_page_stats(void)
 			snprintf(buff, sizeof(buff), "%lu/%lu", info->tx_pps, info->tx_cycles);
 			wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff);
 		}
+		//#ifdef JITTER_CHECK
+		wr_scrn_printf(row++, col, "%*lf", COLUMN_WIDTH_1, info->latency_us);
+		wr_scrn_printf(row++, col, "%*lf", COLUMN_WIDTH_1, info->IPDVariation_us);
+		wr_scrn_printf(row++, col, "%*llu", COLUMN_WIDTH_1, cur);
+		wr_scrn_printf(row++, col, "%*"PRIu64"", COLUMN_WIDTH_1, info->ts_sender);
+		wr_scrn_printf(row++, col, "%*"PRIu64"", COLUMN_WIDTH_1, info->ts_receive);
+		if(info->rate_stats.ipackets != 0) {
+		  int sample_index = cur % SAMPLE_SIZE;
+		  /*
+                  if (sample_index == 0 && cur) {
+		    //char file_name[60];
+		    //sprintf(file_name, "l_%llu", cur);
+		    //write_to_file((double*)latency_array, file_name);
+		    //sprintf(file_name, "j_%llu", cur);
+		    //write_to_file((double*)jitter_array, file_name);
+		    write_to_file(info->range.pkt_size, cur, latency_array, jitter_array, RxMBit_array, RxPkts_array);
+		  }
+                  */
+		  latency_array[sample_index] = info->latency_us;
+		  jitter_array[sample_index] = info->IPDVariation_us;
+		  RxMBit_array[sample_index] = iBitsTotal(info->rate_stats)/Million;
+		  RxPkts_array[sample_index] = info->rate_stats.ipackets;
+		  cur++;
+		}
+		else {
+		  cur = 0;
+		}
+		//#endif
     }
 
     // Display the total pkts/s for all ports
@@ -339,7 +384,28 @@ pktgen_page_stats(void)
     	    iBitsTotal(pktgen.cumm_rate_totals)/Million, oBitsTotal(pktgen.cumm_rate_totals)/Million);
     wr_scrn_printf(row++, col, "%*s", COLUMN_WIDTH_1, buff); wr_scrn_eol();
 }
+/*
+#ifdef JITTER_CHECK
 
+void
+write_to_file(uint16_t size, unsigned long long cur, double* latency_array, double* jitter_array, unsigned long* RxMBit_array, unsigned long long* RxPkts_array) {
+  int i;
+  char file_name[160];
+
+  sprintf(file_name, "/root/experiment_data/random_l3fwd/63vm_%"PRIu16"B_%llu.csv", size + 4, cur);
+  FILE * f = fopen(file_name, "wrb");
+  //fwrite(sample_array, sizeof(double), SAMPLE_SIZE, f);
+  fprintf(f, "latency,jitter,RxMb,RxPkts\n");
+  for(i = 0; i < SAMPLE_SIZE; i++) {
+    fprintf(f, "%lf,%lf,%lu,%llu\n", latency_array[i], jitter_array[i], RxMBit_array[i], RxPkts_array[i]);
+  }
+  fclose(f);
+  //printf("%s\n", file_name);
+  return;
+}
+
+#endif
+*/
 /**************************************************************************//**
 *
 * pktgen_process_stats - Process statistics for all ports on timer1
