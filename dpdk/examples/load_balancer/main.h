@@ -82,8 +82,8 @@
 
 
 /* Mempools */
-#ifndef APP_DEFAULT_MBUF_SIZE
-#define APP_DEFAULT_MBUF_SIZE (2048 + sizeof(struct rte_mbuf) + RTE_PKTMBUF_HEADROOM)
+#ifndef APP_DEFAULT_MBUF_DATA_SIZE
+#define APP_DEFAULT_MBUF_DATA_SIZE  RTE_MBUF_DEFAULT_BUF_SIZE
 #endif
 
 #ifndef APP_DEFAULT_MEMPOOL_BUFFERS
@@ -367,13 +367,5 @@ int app_is_socket_used(uint32_t socket);
 uint32_t app_get_lcores_io_rx(void);
 uint32_t app_get_lcores_worker(void);
 void app_print_params(void);
-
-#ifdef RTE_EXEC_ENV_BAREMETAL
-#define MAIN _main
-#else
-#define MAIN main
-#endif
-
-int MAIN(int argc, char **argv);
 
 #endif /* _MAIN_H_ */

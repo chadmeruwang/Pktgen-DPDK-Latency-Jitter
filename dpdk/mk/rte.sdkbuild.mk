@@ -1,6 +1,6 @@
 #   BSD LICENSE
 #
-#   Copyright(c) 2010-2014 Intel Corporation. All rights reserved.
+#   Copyright(c) 2010-2015 Intel Corporation. All rights reserved.
 #   All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or without
@@ -60,7 +60,7 @@ CLEANDIRS = $(addsuffix _clean,$(ROOTDIRS-y) $(ROOTDIRS-n) $(ROOTDIRS-))
 
 .PHONY: build
 build: $(ROOTDIRS-y)
-	@echo Build complete
+	@echo "Build complete [$(RTE_TARGET)]"
 ifneq ($(DESTDIR),)
 	$(Q)mkdir -p $(DESTDIR)
 	$(Q)tar -C $(RTE_SDK) -cf - mk scripts/*.sh | tar -C $(DESTDIR) -x \
@@ -93,7 +93,7 @@ $(ROOTDIRS-y):
 	@[ -d $(BUILDDIR)/$@ ] || mkdir -p $(BUILDDIR)/$@
 	@echo "== Build $@"
 	$(Q)$(MAKE) S=$@ -f $(RTE_SRCDIR)/$@/Makefile -C $(BUILDDIR)/$@ all
-	@if [ $@ = lib -a $(RTE_BUILD_COMBINE_LIBS) = y ]; then \
+	@if [ $@ = drivers -a $(CONFIG_RTE_BUILD_COMBINE_LIBS) = y ]; then \
 		$(MAKE) -f $(RTE_SDK)/lib/Makefile sharelib; \
 	fi
 

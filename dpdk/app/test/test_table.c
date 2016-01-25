@@ -31,19 +31,6 @@
  *   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-#ifndef RTE_LIBRTE_TABLE
-
-#include "test.h"
-
-int
-test_table(void)
-{
-	return 0;
-}
-
-#else
-
 #include <rte_byteorder.h>
 #include <rte_hexdump.h>
 #include <rte_string_fns.h>
@@ -102,15 +89,10 @@ app_init_mbuf_pools(void)
 	printf("Getting/Creating the mempool ...\n");
 	pool = rte_mempool_lookup("mempool");
 	if (!pool) {
-		pool = rte_mempool_create(
+		pool = rte_pktmbuf_pool_create(
 			"mempool",
 			POOL_SIZE,
-			POOL_BUFFER_SIZE,
-			POOL_CACHE_SIZE,
-			sizeof(struct rte_pktmbuf_pool_private),
-			rte_pktmbuf_pool_init, NULL,
-			rte_pktmbuf_init, NULL,
-			0,
+			POOL_CACHE_SIZE, 0, POOL_BUFFER_SIZE,
 			0);
 		if (pool == NULL)
 			rte_panic("Cannot create mbuf pool\n");
@@ -156,7 +138,7 @@ app_init_rings(void)
 
 }
 
-int
+static int
 test_table(void)
 {
 	int status, failures;
@@ -217,4 +199,8 @@ test_table(void)
 	return 0;
 }
 
-#endif
+static struct test_command table_cmd = {
+	.command = "table_autotest",
+	.callback = test_table,
+};
+REGISTER_TEST_COMMAND(table_cmd);

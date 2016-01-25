@@ -88,7 +88,7 @@ arp_op_name(uint16_t arp_op)
 }
 
 static const char *
-ip_proto_name(uint8_t ip_proto)
+ip_proto_name(uint16_t ip_proto)
 {
 	static const char * ip_proto_names[] = {
 		"IP6HOPOPTS", /**< IP6 hop-by-hop options */
@@ -221,30 +221,22 @@ ip_proto_name(uint8_t ip_proto)
 	if (ip_proto < sizeof(ip_proto_names) / sizeof(ip_proto_names[0]))
 		return ip_proto_names[ip_proto];
 	switch (ip_proto) {
+#ifdef IPPROTO_PGM
 	case IPPROTO_PGM:  /**< PGM */
 		return "PGM";
+#endif
 	case IPPROTO_SCTP:  /**< Stream Control Transport Protocol */
 		return "SCTP";
+#ifdef IPPROTO_DIVERT
 	case IPPROTO_DIVERT: /**< divert pseudo-protocol */
 		return "DIVERT";
+#endif
 	case IPPROTO_RAW: /**< raw IP packet */
 		return "RAW";
 	default:
 		break;
 	}
 	return "UNASSIGNED";
-}
-
-static void
-ether_addr_to_hexa(const struct ether_addr *ea, char *buf)
-{
-	sprintf(buf, "%02x:%02x:%02x:%02x:%02x:%02x",
-		ea->addr_bytes[0],
-		ea->addr_bytes[1],
-		ea->addr_bytes[2],
-		ea->addr_bytes[3],
-		ea->addr_bytes[4],
-		ea->addr_bytes[5]);
 }
 
 static void
@@ -261,9 +253,9 @@ ipv4_addr_to_dot(uint32_t be_ipv4_addr, char *buf)
 static void
 ether_addr_dump(const char *what, const struct ether_addr *ea)
 {
-	char buf[18];
+	char buf[ETHER_ADDR_FMT_SIZE];
 
-	ether_addr_to_hexa(ea, buf);
+	ether_format_addr(buf, ETHER_ADDR_FMT_SIZE, ea);
 	if (what)
 		printf("%s", what);
 	printf("%s", buf);
@@ -279,6 +271,30 @@ ipv4_addr_dump(const char *what, uint32_t be_ipv4_addr)
 		printf("%s", what);
 	printf("%s", buf);
 }
+
+static uint16_t
+ipv4_hdr_cksum(struct ipv4_hdr *ip_h)
+{
+	uint16_t *v16_h;
+	uint32_t ip_cksum;
+
+	/*
+	 * Compute the sum of successive 16-bit words of the IPv4 header,
+	 * skipping the checksum field of the header.
+	 */
+	v16_h = (unaligned_uint16_t *) ip_h;
+	ip_cksum = v16_h[0] + v16_h[1] + v16_h[2] + v16_h[3] +
+		v16_h[4] + v16_h[6] + v16_h[7] + v16_h[8] + v16_h[9];
+
+	/* reduce 32 bit checksum to 16 bits and complement it */
+	ip_cksum = (ip_cksum & 0xffff) + (ip_cksum >> 16);
+	ip_cksum = (ip_cksum & 0xffff) + (ip_cksum >> 16);
+	ip_cksum = (~ip_cksum) & 0x0000FFFF;
+	return (ip_cksum == 0) ? 0xFFFF : (uint16_t) ip_cksum;
+}
+
+#define is_multicast_ipv4_addr(ipv4_addr) \
+	(((rte_be_to_cpu_32((ipv4_addr)) >> 24) & 0x000000FF) == 0xE0)
 
 /*
  * Receive a burst of packets, lookup for ICMP echo requets, and, if any,
@@ -303,6 +319,7 @@ reply_to_icmp_echo_rqsts(struct fwd_stream *fs)
 	uint16_t vlan_id;
 	uint16_t arp_op;
 	uint16_t arp_pro;
+	uint32_t cksum;
 	uint8_t  i;
 	int l2_len;
 #ifdef RTE_TEST_PMD_RECORD_CORE_CYCLES
@@ -330,12 +347,12 @@ reply_to_icmp_echo_rqsts(struct fwd_stream *fs)
 	nb_replies = 0;
 	for (i = 0; i < nb_rx; i++) {
 		pkt = pkts_burst[i];
-		eth_h = (struct ether_hdr *) pkt->pkt.data;
+		eth_h = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
 		eth_type = RTE_BE_TO_CPU_16(eth_h->ether_type);
 		l2_len = sizeof(struct ether_hdr);
 		if (verbose_level > 0) {
 			printf("\nPort %d pkt-len=%u nb-segs=%u\n",
-			       fs->rx_port, pkt->pkt.pkt_len, pkt->pkt.nb_segs);
+			       fs->rx_port, pkt->pkt_len, pkt->nb_segs);
 			ether_addr_dump("  ETH:  src=", &eth_h->s_addr);
 			ether_addr_dump(" dst=", &eth_h->d_addr);
 		}
@@ -379,18 +396,14 @@ reply_to_icmp_echo_rqsts(struct fwd_stream *fs)
 				continue;
 			}
 			if (verbose_level > 0) {
-				memcpy(&eth_addr,
-				       arp_h->arp_data.arp_ip.arp_sha, 6);
+				ether_addr_copy(&arp_h->arp_data.arp_sha, &eth_addr);
 				ether_addr_dump("        sha=", &eth_addr);
-				memcpy(&ip_addr,
-				       arp_h->arp_data.arp_ip.arp_sip, 4);
+				ip_addr = arp_h->arp_data.arp_sip;
 				ipv4_addr_dump(" sip=", ip_addr);
 				printf("\n");
-				memcpy(&eth_addr,
-				       arp_h->arp_data.arp_ip.arp_tha, 6);
+				ether_addr_copy(&arp_h->arp_data.arp_tha, &eth_addr);
 				ether_addr_dump("        tha=", &eth_addr);
-				memcpy(&ip_addr,
-				       arp_h->arp_data.arp_ip.arp_tip, 4);
+				ip_addr = arp_h->arp_data.arp_tip;
 				ipv4_addr_dump(" tip=", ip_addr);
 				printf("\n");
 			}
@@ -410,17 +423,14 @@ reply_to_icmp_echo_rqsts(struct fwd_stream *fs)
 					&eth_h->s_addr);
 
 			arp_h->arp_op = rte_cpu_to_be_16(ARP_OP_REPLY);
-			memcpy(&eth_addr, arp_h->arp_data.arp_ip.arp_tha, 6);
-			memcpy(arp_h->arp_data.arp_ip.arp_tha,
-			       arp_h->arp_data.arp_ip.arp_sha, 6);
-			memcpy(arp_h->arp_data.arp_ip.arp_sha,
-			       &eth_h->s_addr, 6);
+			ether_addr_copy(&arp_h->arp_data.arp_tha, &eth_addr);
+			ether_addr_copy(&arp_h->arp_data.arp_sha, &arp_h->arp_data.arp_tha);
+			ether_addr_copy(&eth_h->s_addr, &arp_h->arp_data.arp_sha);
 
 			/* Swap IP addresses in ARP payload */
-			memcpy(&ip_addr, arp_h->arp_data.arp_ip.arp_sip, 4);
-			memcpy(arp_h->arp_data.arp_ip.arp_sip,
-			       arp_h->arp_data.arp_ip.arp_tip, 4);
-			memcpy(arp_h->arp_data.arp_ip.arp_tip, &ip_addr, 4);
+			ip_addr = arp_h->arp_data.arp_sip;
+			arp_h->arp_data.arp_sip = arp_h->arp_data.arp_tip;
+			arp_h->arp_data.arp_tip = ip_addr;
 			pkts_burst[nb_replies++] = pkt;
 			continue;
 		}
@@ -457,19 +467,47 @@ reply_to_icmp_echo_rqsts(struct fwd_stream *fs)
 		/*
 		 * Prepare ICMP echo reply to be sent back.
 		 * - switch ethernet source and destinations addresses,
-		 * - switch IPv4 source and destinations addresses,
+		 * - use the request IP source address as the reply IP
+		 *    destination address,
+		 * - if the request IP destination address is a multicast
+		 *   address:
+		 *     - choose a reply IP source address different from the
+		 *       request IP source address,
+		 *     - re-compute the IP header checksum.
+		 *   Otherwise:
+		 *     - switch the request IP source and destination
+		 *       addresses in the reply IP header,
+		 *     - keep the IP header checksum unchanged.
 		 * - set IP_ICMP_ECHO_REPLY in ICMP header.
-		 * No need to re-compute the IP header checksum.
-		 * Reset ICMP checksum.
+		 * ICMP checksum is computed by assuming it is valid in the
+		 * echo request and not verified.
 		 */
 		ether_addr_copy(&eth_h->s_addr, &eth_addr);
 		ether_addr_copy(&eth_h->d_addr, &eth_h->s_addr);
 		ether_addr_copy(&eth_addr, &eth_h->d_addr);
 		ip_addr = ip_h->src_addr;
-		ip_h->src_addr = ip_h->dst_addr;
-		ip_h->dst_addr = ip_addr;
+		if (is_multicast_ipv4_addr(ip_h->dst_addr)) {
+			uint32_t ip_src;
+
+			ip_src = rte_be_to_cpu_32(ip_addr);
+			if ((ip_src & 0x00000003) == 1)
+				ip_src = (ip_src & 0xFFFFFFFC) | 0x00000002;
+			else
+				ip_src = (ip_src & 0xFFFFFFFC) | 0x00000001;
+			ip_h->src_addr = rte_cpu_to_be_32(ip_src);
+			ip_h->dst_addr = ip_addr;
+			ip_h->hdr_checksum = ipv4_hdr_cksum(ip_h);
+		} else {
+			ip_h->src_addr = ip_h->dst_addr;
+			ip_h->dst_addr = ip_addr;
+		}
 		icmp_h->icmp_type = IP_ICMP_ECHO_REPLY;
-		icmp_h->icmp_cksum = 0;
+		cksum = ~icmp_h->icmp_cksum & 0xffff;
+		cksum += ~htons(IP_ICMP_ECHO_REQUEST << 8) & 0xffff;
+		cksum += htons(IP_ICMP_ECHO_REPLY << 8);
+		cksum = (cksum & 0xffff) + (cksum >> 16);
+		cksum = (cksum & 0xffff) + (cksum >> 16);
+		icmp_h->icmp_cksum = ~cksum;
 		pkts_burst[nb_replies++] = pkt;
 	}
 

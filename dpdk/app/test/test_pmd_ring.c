@@ -32,8 +32,6 @@
  */
 #include "test.h"
 
-#ifdef RTE_LIBRTE_PMD_RING
-
 #include <stdio.h>
 
 #include <rte_eth_ring.h>
@@ -50,7 +48,6 @@ static struct rte_mempool *mp;
 
 #define RING_SIZE 256
 
-#define MBUF_SIZE (2048 + sizeof(struct rte_mbuf) + RTE_PKTMBUF_HEADROOM)
 #define NB_MBUF   512
 
 static int
@@ -405,15 +402,11 @@ test_pmd_ring_pair_create_attach(void)
 	return 0;
 }
 
-int
+static int
 test_pmd_ring(void)
 {
-	mp = rte_mempool_create("mbuf_pool", NB_MBUF,
-			MBUF_SIZE, 32,
-			sizeof(struct rte_pktmbuf_pool_private),
-			rte_pktmbuf_pool_init, NULL,
-			rte_pktmbuf_init, NULL,
-			rte_socket_id(), 0);
+	mp = rte_pktmbuf_pool_create("mbuf_pool", NB_MBUF, 32,
+		0, RTE_MBUF_DEFAULT_BUF_SIZE, rte_socket_id());
 	if (mp == NULL)
 		return -1;
 
@@ -445,13 +438,8 @@ test_pmd_ring(void)
 	return 0;
 }
 
-#else
-
-int
-test_pmd_ring(void)
-{
-	return 0;
-}
-
-#endif
-
+static struct test_command ring_pmd_cmd = {
+	.command = "ring_pmd_autotest",
+	.callback = test_pmd_ring,
+};
+REGISTER_TEST_COMMAND(ring_pmd_cmd);

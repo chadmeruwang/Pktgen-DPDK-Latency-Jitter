@@ -36,12 +36,29 @@
 
 #include <rte_common.h>
 #include <rte_mbuf.h>
+#include <rte_memory.h>
 #include <rte_malloc.h>
 #include <rte_log.h>
 
 #include "rte_table_array.h"
 
+#ifdef RTE_TABLE_STATS_COLLECT
+
+#define RTE_TABLE_ARRAY_STATS_PKTS_IN_ADD(table, val) \
+	table->stats.n_pkts_in += val
+#define RTE_TABLE_ARRAY_STATS_PKTS_LOOKUP_MISS(table, val) \
+	table->stats.n_pkts_lookup_miss += val
+
+#else
+
+#define RTE_TABLE_ARRAY_STATS_PKTS_IN_ADD(table, val)
+#define RTE_TABLE_ARRAY_STATS_PKTS_LOOKUP_MISS(table, val)
+
+#endif
+
 struct rte_table_array {
+	struct rte_table_stats stats;
+
 	/* Input parameters */
 	uint32_t entry_size;
 	uint32_t n_entries;
@@ -65,18 +82,16 @@ rte_table_array_create(void *params, int socket_id, uint32_t entry_size)
 	/* Check input parameters */
 	if ((p == NULL) ||
 	    (p->n_entries == 0) ||
-		(!rte_is_power_of_2(p->n_entries)) ||
-		((p->offset & 0x3) != 0)) {
+		(!rte_is_power_of_2(p->n_entries)))
 		return NULL;
-	}
 
 	/* Memory allocation */
 	total_cl_size = (sizeof(struct rte_table_array) +
-			CACHE_LINE_SIZE) / CACHE_LINE_SIZE;
+			RTE_CACHE_LINE_SIZE) / RTE_CACHE_LINE_SIZE;
 	total_cl_size += (p->n_entries * entry_size +
-			CACHE_LINE_SIZE) / CACHE_LINE_SIZE;
-	total_size = total_cl_size * CACHE_LINE_SIZE;
-	t = rte_zmalloc_socket("TABLE", total_size, CACHE_LINE_SIZE, socket_id);
+			RTE_CACHE_LINE_SIZE) / RTE_CACHE_LINE_SIZE;
+	total_size = total_cl_size * RTE_CACHE_LINE_SIZE;
+	t = rte_zmalloc_socket("TABLE", total_size, RTE_CACHE_LINE_SIZE, socket_id);
 	if (t == NULL) {
 		RTE_LOG(ERR, TABLE,
 			"%s: Cannot allocate %u bytes for array table\n",
@@ -163,6 +178,9 @@ rte_table_array_lookup(
 	void **entries)
 {
 	struct rte_table_array *t = (struct rte_table_array *) table;
+	__rte_unused uint32_t n_pkts_in = __builtin_popcountll(pkts_mask);
+	RTE_TABLE_ARRAY_STATS_PKTS_IN_ADD(t, n_pkts_in);
+	*lookup_hit_mask = pkts_mask;
 
 	if ((pkts_mask & (pkts_mask + 1)) == 0) {
 		uint64_t n_pkts = __builtin_popcountll(pkts_mask);
@@ -190,7 +208,19 @@ rte_table_array_lookup(
 		}
 	}
 
-	*lookup_hit_mask = pkts_mask;
+	return 0;
+}
+
+static int
+rte_table_array_stats_read(void *table, struct rte_table_stats *stats, int clear)
+{
+	struct rte_table_array *array = (struct rte_table_array *) table;
+
+	if (stats != NULL)
+		memcpy(stats, &array->stats, sizeof(array->stats));
+
+	if (clear)
+		memset(&array->stats, 0, sizeof(array->stats));
 
 	return 0;
 }
@@ -201,4 +231,5 @@ struct rte_table_ops rte_table_array_ops = {
 	.f_add = rte_table_array_entry_add,
 	.f_delete = NULL,
 	.f_lookup = rte_table_array_lookup,
+	.f_stats = rte_table_array_stats_read,
 };

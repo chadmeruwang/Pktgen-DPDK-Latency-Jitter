@@ -1,6 +1,6 @@
 #   BSD LICENSE
 #
-#   Copyright(c) 2010-2014 Intel Corporation. All rights reserved.
+#   Copyright(c) 2010-2015 Intel Corporation. All rights reserved.
 #   All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or without
@@ -36,14 +36,15 @@ LIB = librte_eal.a
 VPATH += $(RTE_SDK)/lib/librte_eal/common
 
 CFLAGS += -I$(SRCDIR)/include
+CFLAGS += -I$(RTE_SDK)/lib/librte_eal/common
 CFLAGS += -I$(RTE_SDK)/lib/librte_eal/common/include
 CFLAGS += -I$(RTE_SDK)/lib/librte_ring
 CFLAGS += -I$(RTE_SDK)/lib/librte_mempool
-CFLAGS += -I$(RTE_SDK)/lib/librte_malloc
-CFLAGS += -I$(RTE_SDK)/lib/librte_ether
-CFLAGS += -I$(RTE_SDK)/lib/librte_pmd_ring
-CFLAGS += -I$(RTE_SDK)/lib/librte_pmd_pcap
 CFLAGS += $(WERROR_FLAGS) -O3
+
+EXPORT_MAP := rte_eal_version.map
+
+LIBABIVER := 1
 
 # specific to linuxapp exec-env
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) := eal.c
@@ -59,10 +60,13 @@ SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += eal_interrupts.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += eal_alarm.c
 
 # from common dir
+SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += eal_common_lcore.c
+SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += eal_common_timer.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += eal_common_memzone.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += eal_common_log.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += eal_common_launch.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += eal_common_pci.c
+SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += eal_common_pci_uio.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += eal_common_memory.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += eal_common_tailqs.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += eal_common_errno.c
@@ -71,6 +75,11 @@ SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += eal_common_string_fns.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += eal_common_hexdump.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += eal_common_devargs.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += eal_common_dev.c
+SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += eal_common_options.c
+SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += eal_common_thread.c
+SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += rte_malloc.c
+SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += malloc_elem.c
+SRCS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += malloc_heap.c
 
 CFLAGS_eal.o := -D_GNU_SOURCE
 #CFLAGS_eal_thread.o := -D_GNU_SOURCE
@@ -84,7 +93,7 @@ CFLAGS_eal_thread.o += -Wno-return-type
 CFLAGS_eal_hpet.o += -Wno-return-type
 endif
 
-INC := rte_per_lcore.h rte_lcore.h rte_interrupts.h rte_kni_common.h
+INC := rte_interrupts.h
 
 SYMLINK-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP)-include/exec-env := \
 	$(addprefix include/exec-env/,$(INC))
@@ -92,4 +101,3 @@ SYMLINK-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP)-include/exec-env := \
 DEPDIRS-$(CONFIG_RTE_LIBRTE_EAL_BSDAPP) += lib/librte_eal/common
 
 include $(RTE_SDK)/mk/rte.lib.mk
-

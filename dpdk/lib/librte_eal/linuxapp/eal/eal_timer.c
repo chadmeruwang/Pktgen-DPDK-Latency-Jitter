@@ -47,7 +47,6 @@
 #include <rte_common.h>
 #include <rte_log.h>
 #include <rte_cycles.h>
-#include <rte_tailq.h>
 #include <rte_memory.h>
 #include <rte_memzone.h>
 #include <rte_eal.h>
@@ -57,9 +56,6 @@
 #include "eal_internal_cfg.h"
 
 enum timer_source eal_timer_source = EAL_TIMER_HPET;
-
-/* The frequency of the RDTSC timer resolution */
-static uint64_t eal_tsc_resolution_hz = 0;
 
 #ifdef RTE_LIBEAL_USE_HPET
 
@@ -71,8 +67,6 @@ static uint64_t eal_tsc_resolution_hz = 0;
 /* General capabilities register */
 #define CLK_PERIOD_SHIFT     32 /* Clock period shift. */
 #define CLK_PERIOD_MASK      0xffffffff00000000ULL /* Clock period mask. */
-#define COUNT_SIZE_CAP_SHIFT 13 /* Count size capa. shift. */
-#define COUNT_SIZE_CAP_MASK 0x0000000000002000ULL /* Count size capa. mask. */
 
 /**
  * HPET timer registers. From the Intel IA-PC HPET (High Precision Event
@@ -163,23 +157,6 @@ rte_get_hpet_cycles(void)
 
 #endif
 
-
-void
-rte_delay_us(unsigned us)
-{
-	const uint64_t start = rte_get_timer_cycles();
-	const uint64_t ticks = (uint64_t)us * rte_get_timer_hz() / 1E6;
-	while ((rte_get_timer_cycles() - start) < ticks)
-		rte_pause();
-}
-
-uint64_t
-rte_get_tsc_hz(void)
-{
-	return eal_tsc_resolution_hz;
-}
-
-
 #ifdef RTE_LIBEAL_USE_HPET
 /*
  * Open and mmap /dev/hpet (high precision event timer) that will
@@ -191,7 +168,7 @@ rte_eal_hpet_init(int make_default)
 	int fd, ret;
 
 	if (internal_config.no_hpet) {
-		RTE_LOG(INFO, EAL, "HPET is disabled\n");
+		RTE_LOG(NOTICE, EAL, "HPET is disabled\n");
 		return -1;
 	}
 
@@ -278,8 +255,8 @@ check_tsc_flags(void)
 	fclose(stream);
 }
 
-static int
-set_tsc_freq_from_clock(void)
+uint64_t
+get_tsc_freq(void)
 {
 #ifdef CLOCK_MONOTONIC_RAW
 #define NS_PER_SEC 1E9
@@ -287,6 +264,7 @@ set_tsc_freq_from_clock(void)
 	struct timespec sleeptime = {.tv_nsec = 5E8 }; /* 1/2 second */
 
 	struct timespec t_start, t_end;
+	uint64_t tsc_hz;
 
 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &t_start) == 0) {
 		uint64_t ns, end, start = rte_rdtsc();
@@ -297,40 +275,11 @@ set_tsc_freq_from_clock(void)
 		ns += (t_end.tv_nsec - t_start.tv_nsec);
 
 		double secs = (double)ns/NS_PER_SEC;
-		eal_tsc_resolution_hz = (uint64_t)((end - start)/secs);
-		return 0;
+		tsc_hz = (uint64_t)((end - start)/secs);
+		return tsc_hz;
 	}
 #endif
-	return -1;
-}
-
-static void
-set_tsc_freq_fallback(void)
-{
-	RTE_LOG(WARNING, EAL, "WARNING: clock_gettime cannot use "
-			"CLOCK_MONOTONIC_RAW and HPET is not available"
-			" - clock timings may be less accurate.\n");
-	/* assume that the sleep(1) will sleep for 1 second */
-	uint64_t start = rte_rdtsc();
-	sleep(1);
-	eal_tsc_resolution_hz = rte_rdtsc() - start;
-}
-/*
- * This function measures the TSC frequency. It uses a variety of approaches.
- *
- * 1. If kernel provides CLOCK_MONOTONIC_RAW we use that to tune the TSC value
- * 2. If kernel does not provide that, and we have HPET support, tune using HPET
- * 3. Lastly, if neither of the above can be used, just sleep for 1 second and
- * tune off that, printing a warning about inaccuracy of timing
- */
-static void
-set_tsc_freq(void)
-{
-	if (set_tsc_freq_from_clock() < 0)
-		set_tsc_freq_fallback();
-
-	RTE_LOG(INFO, EAL, "TSC frequency is ~%"PRIu64" KHz\n",
-			eal_tsc_resolution_hz/1000);
+	return 0;
 }
 
 int

@@ -33,7 +33,6 @@
 
 #include "test.h"
 
-#ifdef RTE_LIBRTE_TIMER
 #include <stdio.h>
 #include <unistd.h>
 #include <inttypes.h>
@@ -62,7 +61,7 @@ timer_cb(struct rte_timer *t __rte_unused, void *param __rte_unused)
 #define do_delay() rte_pause()
 #endif
 
-int
+static int
 test_timer_perf(void)
 {
 	unsigned iterations = 100;
@@ -159,12 +158,8 @@ test_timer_perf(void)
 	return 0;
 }
 
-#else
-
-int
-test_timer_perf(void)
-{
-	return 0;
-}
-
-#endif
+static struct test_command timer_perf_cmd = {
+	.command = "timer_perf_autotest",
+	.callback = test_timer_perf,
+};
+REGISTER_TEST_COMMAND(timer_perf_cmd);

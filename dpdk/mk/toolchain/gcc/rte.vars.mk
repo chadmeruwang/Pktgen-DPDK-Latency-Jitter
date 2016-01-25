@@ -39,6 +39,7 @@
 #
 
 CC        = $(CROSS)gcc
+KERNELCC  = $(CROSS)gcc
 CPP       = $(CROSS)cpp
 # for now, we don't use as but nasm.
 # AS      = $(CROSS)as
@@ -74,14 +75,19 @@ WERROR_FLAGS := -W -Wall -Werror -Wstrict-prototypes -Wmissing-prototypes
 WERROR_FLAGS += -Wmissing-declarations -Wold-style-definition -Wpointer-arith
 WERROR_FLAGS += -Wcast-align -Wnested-externs -Wcast-qual
 WERROR_FLAGS += -Wformat-nonliteral -Wformat-security
-
-ifeq ($(CONFIG_RTE_EXEC_ENV),"linuxapp")
-# These trigger warnings in newlib, so can't be used for baremetal
 WERROR_FLAGS += -Wundef -Wwrite-strings
-endif
 
 # process cpu flags
 include $(RTE_SDK)/mk/toolchain/$(RTE_TOOLCHAIN)/rte.toolchain-compat.mk
+
+# workaround GCC bug with warning "missing initializer" for "= {0}"
+ifeq ($(shell test $(GCC_VERSION) -lt 47 && echo 1), 1)
+WERROR_FLAGS += -Wno-missing-field-initializers
+endif
+# workaround GCC bug with warning "may be used uninitialized"
+ifeq ($(shell test $(GCC_VERSION) -lt 47 && echo 1), 1)
+WERROR_FLAGS += -Wno-uninitialized
+endif
 
 export CC AS AR LD OBJCOPY OBJDUMP STRIP READELF
 export TOOLCHAIN_CFLAGS TOOLCHAIN_LDFLAGS TOOLCHAIN_ASFLAGS

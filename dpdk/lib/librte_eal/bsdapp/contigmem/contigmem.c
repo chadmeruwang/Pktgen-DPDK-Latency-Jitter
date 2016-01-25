@@ -63,20 +63,20 @@ static d_mmap_single_t  contigmem_mmap_single;
 static d_open_t         contigmem_open;
 
 static int              contigmem_num_buffers = RTE_CONTIGMEM_DEFAULT_NUM_BUFS;
-static int              contigmem_buffer_size = RTE_CONTIGMEM_DEFAULT_BUF_SIZE;
+static int64_t          contigmem_buffer_size = RTE_CONTIGMEM_DEFAULT_BUF_SIZE;
 
 static eventhandler_tag contigmem_eh_tag;
 static void            *contigmem_buffers[RTE_CONTIGMEM_MAX_NUM_BUFS];
 static struct cdev     *contigmem_cdev = NULL;
 
 TUNABLE_INT("hw.contigmem.num_buffers", &contigmem_num_buffers);
-TUNABLE_INT("hw.contigmem.buffer_size", &contigmem_buffer_size);
+TUNABLE_QUAD("hw.contigmem.buffer_size", &contigmem_buffer_size);
 
 static SYSCTL_NODE(_hw, OID_AUTO, contigmem, CTLFLAG_RD, 0, "contigmem");
 
 SYSCTL_INT(_hw_contigmem, OID_AUTO, num_buffers, CTLFLAG_RD,
 	&contigmem_num_buffers, 0, "Number of contigmem buffers allocated");
-SYSCTL_INT(_hw_contigmem, OID_AUTO, buffer_size, CTLFLAG_RD,
+SYSCTL_QUAD(_hw_contigmem, OID_AUTO, buffer_size, CTLFLAG_RD,
 	&contigmem_buffer_size, 0, "Size of each contiguous buffer");
 
 static SYSCTL_NODE(_hw_contigmem, OID_AUTO, physaddr, CTLFLAG_RD, 0,
@@ -99,7 +99,7 @@ static int contigmem_modevent(module_t mod, int type, void *arg)
 		break;
 	}
 
-	return (error);
+	return error;
 }
 
 moduledata_t contigmem_mod = {
@@ -128,14 +128,14 @@ contigmem_load()
 	if (contigmem_num_buffers > RTE_CONTIGMEM_MAX_NUM_BUFS) {
 		printf("%d buffers requested is greater than %d allowed\n",
 				contigmem_num_buffers, RTE_CONTIGMEM_MAX_NUM_BUFS);
-		return (EINVAL);
+		return EINVAL;
 	}
 
 	if (contigmem_buffer_size < PAGE_SIZE ||
 			(contigmem_buffer_size & (contigmem_buffer_size - 1)) != 0) {
-		printf("buffer size 0x%x is not greater than PAGE_SIZE and "
+		printf("buffer size 0x%lx is not greater than PAGE_SIZE and "
 				"power of two\n", contigmem_buffer_size);
-		return (EINVAL);
+		return EINVAL;
 	}
 
 	for (i = 0; i < contigmem_num_buffers; i++) {
@@ -145,7 +145,7 @@ contigmem_load()
 
 		if (contigmem_buffers[i] == NULL) {
 			printf("contigmalloc failed for buffer %d\n", i);
-			return (ENOMEM);
+			return ENOMEM;
 		}
 
 		printf("%2u: virt=%p phys=%p\n", i, contigmem_buffers[i],
@@ -164,7 +164,7 @@ contigmem_load()
 	contigmem_cdev = make_dev_credf(0, &contigmem_ops, 0, NULL, UID_ROOT,
 			GID_WHEEL, 0600, "contigmem");
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -178,12 +178,12 @@ contigmem_unload()
 	if (contigmem_eh_tag != NULL)
 		EVENTHANDLER_DEREGISTER(process_exit, contigmem_eh_tag);
 
-	for (i = 0; i < contigmem_num_buffers; i++)
+	for (i = 0; i < RTE_CONTIGMEM_MAX_NUM_BUFS; i++)
 		if (contigmem_buffers[i] != NULL)
 			contigfree(contigmem_buffers[i], contigmem_buffer_size,
 					M_CONTIGMEM);
 
-	return (0);
+	return 0;
 }
 
 static int
@@ -193,14 +193,14 @@ contigmem_physaddr(SYSCTL_HANDLER_ARGS)
 	int		index = (int)(uintptr_t)arg1;
 
 	physaddr = (uint64_t)vtophys(contigmem_buffers[index]);
-	return (sysctl_handle_64(oidp, &physaddr, 0, req));
+	return sysctl_handle_64(oidp, &physaddr, 0, req);
 }
 
 static int
 contigmem_open(struct cdev *cdev, int fflags, int devtype,
 		struct thread *td)
 {
-	return (0);
+	return 0;
 }
 
 static int
@@ -209,7 +209,7 @@ contigmem_mmap(struct cdev *cdev, vm_ooffset_t offset, vm_paddr_t *paddr,
 {
 
 	*paddr = offset;
-	return (0);
+	return 0;
 }
 
 static int
@@ -222,12 +222,11 @@ contigmem_mmap_single(struct cdev *cdev, vm_ooffset_t *offset, vm_size_t size,
 	 *  app.
 	 */
 	if ((*offset/PAGE_SIZE) >= contigmem_num_buffers)
-		return (EINVAL);
+		return EINVAL;
 
 	*offset = (vm_ooffset_t)vtophys(contigmem_buffers[*offset/PAGE_SIZE]);
 	*obj = vm_pager_allocate(OBJT_DEVICE, cdev, size, nprot, *offset,
 			curthread->td_ucred);
 
-	return (0);
+	return 0;
 }
-

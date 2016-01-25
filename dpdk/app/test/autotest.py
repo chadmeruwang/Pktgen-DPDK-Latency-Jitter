@@ -60,13 +60,7 @@ if len(sys.argv) > 3:
 	else:
 		test_whitelist = testlist
 
-# adjust test command line
-if "baremetal" in target:
-	cmdline  = "qemu-system-x86_64 -cdrom %s.iso -boot d " % (sys.argv[1])
-	cmdline	+= "-m 2000 -smp 4 -nographic -net nic,model=e1000"
-	platform = "QEMU x86_64"
-else:
-	cmdline  = "%s -c f -n 4"%(sys.argv[1])
+cmdline  = "%s -c f -n 4"%(sys.argv[1])
 
 print cmdline
 
@@ -78,5 +72,6 @@ for test_group in autotest_data.parallel_test_group_list:
 for test_group in autotest_data.non_parallel_test_group_list:
 	runner.add_non_parallel_test_group(test_group)
 
-runner.run_all_tests()
+num_fails = runner.run_all_tests()
 
+sys.exit(num_fails)

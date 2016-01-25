@@ -47,7 +47,8 @@
  */
 
 #include <rte_pci.h>
-#include <rte_mbuf.h>
+#include <rte_memory.h>
+#include <rte_mempool.h>
 
 #include <exec-env/rte_kni_common.h>
 
@@ -56,6 +57,7 @@ extern "C" {
 #endif
 
 struct rte_kni;
+struct rte_mbuf;
 
 /**
  * Structure which has the function pointers for KNI interface.
@@ -90,10 +92,26 @@ struct rte_kni_conf {
 };
 
 /**
+ * Initialize and preallocate KNI subsystem
+ *
+ * This function is to be executed on the MASTER lcore only, after EAL
+ * initialization and before any KNI interface is attempted to be
+ * allocated
+ *
+ * @param max_kni_ifaces
+ *  The maximum number of KNI interfaces that can coexist concurrently
+ */
+extern void rte_kni_init(unsigned int max_kni_ifaces);
+
+
+/**
  * Allocate KNI interface according to the port id, mbuf size, mbuf pool,
  * configurations and callbacks for kernel requests.The KNI interface created
  * in the kernel space is the net interface the traditional Linux application
  * talking to.
+ *
+ * The rte_kni_alloc shall not be called before rte_kni_init() has been
+ * called. rte_kni_alloc is thread safe.
  *
  * @param pktmbuf_pool
  *  The mempool for allocting mbufs for packets.
@@ -138,6 +156,8 @@ extern struct rte_kni *rte_kni_create(uint8_t port_id,
  * Release KNI interface according to the context. It will also release the
  * paired KNI interface in kernel space. All processing on the specific KNI
  * context need to be stopped before calling this interface.
+ *
+ * rte_kni_release is thread safe.
  *
  * @param kni
  *  The pointer to the context of an existent KNI interface.
@@ -228,6 +248,16 @@ extern uint8_t rte_kni_get_port_id(struct rte_kni *kni) \
 extern struct rte_kni *rte_kni_get(const char *name);
 
 /**
+ * Get the name given to a KNI device
+ *
+ * @param kni
+ *   The KNI instance to query
+ * @return
+ *   The pointer to the KNI name
+ */
+extern const char *rte_kni_get_name(const struct rte_kni *kni);
+
+/**
  * Get the KNI context of the specific port.
  *
  * Note: It is deprecated and just for backward compatibility.
@@ -271,12 +301,7 @@ extern int rte_kni_register_handlers(struct rte_kni *kni,
 extern int rte_kni_unregister_handlers(struct rte_kni *kni);
 
 /**
- *  close KNI device.
- *
- *  @param void
- *
- *  @return
- *   void
+ *  Close KNI device.
  */
 extern void rte_kni_close(void);
 
@@ -285,4 +310,3 @@ extern void rte_kni_close(void);
 #endif
 
 #endif /* _RTE_KNI_H_ */
-

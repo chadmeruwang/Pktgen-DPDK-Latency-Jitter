@@ -1,6 +1,6 @@
 #   BSD LICENSE
 #
-#   Copyright(c) 2010-2014 Intel Corporation. All rights reserved.
+#   Copyright(c) 2010-2015 Intel Corporation. All rights reserved.
 #   All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or without
@@ -33,18 +33,18 @@ include $(RTE_SDK)/mk/rte.vars.mk
 
 LIB = librte_eal.a
 
+EXPORT_MAP := rte_eal_version.map
+
+LIBABIVER := 1
+
 VPATH += $(RTE_SDK)/lib/librte_eal/common
 
 CFLAGS += -I$(SRCDIR)/include
+CFLAGS += -I$(RTE_SDK)/lib/librte_eal/common
 CFLAGS += -I$(RTE_SDK)/lib/librte_eal/common/include
 CFLAGS += -I$(RTE_SDK)/lib/librte_ring
 CFLAGS += -I$(RTE_SDK)/lib/librte_mempool
-CFLAGS += -I$(RTE_SDK)/lib/librte_malloc
-CFLAGS += -I$(RTE_SDK)/lib/librte_ether
 CFLAGS += -I$(RTE_SDK)/lib/librte_ivshmem
-CFLAGS += -I$(RTE_SDK)/lib/librte_pmd_ring
-CFLAGS += -I$(RTE_SDK)/lib/librte_pmd_pcap
-CFLAGS += -I$(RTE_SDK)/lib/librte_pmd_xenvirt
 CFLAGS += $(WERROR_FLAGS) -O3
 
 # specific to linuxapp exec-env
@@ -70,10 +70,13 @@ SRCS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += eal_ivshmem.c
 endif
 
 # from common dir
+SRCS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += eal_common_lcore.c
+SRCS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += eal_common_timer.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += eal_common_memzone.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += eal_common_log.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += eal_common_launch.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += eal_common_pci.c
+SRCS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += eal_common_pci_uio.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += eal_common_memory.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += eal_common_tailqs.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += eal_common_errno.c
@@ -82,15 +85,26 @@ SRCS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += eal_common_string_fns.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += eal_common_hexdump.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += eal_common_devargs.c
 SRCS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += eal_common_dev.c
+SRCS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += eal_common_options.c
+SRCS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += eal_common_thread.c
+SRCS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += rte_malloc.c
+SRCS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += malloc_elem.c
+SRCS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += malloc_heap.c
 
 CFLAGS_eal.o := -D_GNU_SOURCE
+CFLAGS_eal_interrupts.o := -D_GNU_SOURCE
+CFLAGS_eal_lcore.o := -D_GNU_SOURCE
 CFLAGS_eal_thread.o := -D_GNU_SOURCE
 CFLAGS_eal_log.o := -D_GNU_SOURCE
 CFLAGS_eal_common_log.o := -D_GNU_SOURCE
 CFLAGS_eal_hugepage_info.o := -D_GNU_SOURCE
 CFLAGS_eal_pci.o := -D_GNU_SOURCE
+CFLAGS_eal_pci_uio.o := -D_GNU_SOURCE
 CFLAGS_eal_pci_vfio.o := -D_GNU_SOURCE
 CFLAGS_eal_common_whitelist.o := -D_GNU_SOURCE
+CFLAGS_eal_common_options.o := -D_GNU_SOURCE
+CFLAGS_eal_common_thread.o := -D_GNU_SOURCE
+CFLAGS_eal_common_lcore.o := -D_GNU_SOURCE
 
 # workaround for a gcc bug with noreturn attribute
 # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=12603
@@ -98,7 +112,7 @@ ifeq ($(CONFIG_RTE_TOOLCHAIN_GCC),y)
 CFLAGS_eal_thread.o += -Wno-return-type
 endif
 
-INC := rte_per_lcore.h rte_lcore.h rte_interrupts.h rte_kni_common.h rte_dom0_common.h
+INC := rte_interrupts.h rte_kni_common.h rte_dom0_common.h
 
 SYMLINK-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP)-include/exec-env := \
 	$(addprefix include/exec-env/,$(INC))
@@ -106,4 +120,3 @@ SYMLINK-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP)-include/exec-env := \
 DEPDIRS-$(CONFIG_RTE_LIBRTE_EAL_LINUXAPP) += lib/librte_eal/common
 
 include $(RTE_SDK)/mk/rte.lib.mk
-

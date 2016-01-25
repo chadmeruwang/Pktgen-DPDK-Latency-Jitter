@@ -2,10 +2,17 @@
  * Minimal wrappers to allow compiling igb_uio on older kernels.
  */
 
+#ifndef RHEL_RELEASE_VERSION
+#define RHEL_RELEASE_VERSION(a, b) (((a) << 8) + (b))
+#endif
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 3, 0)
 #define pci_cfg_access_lock   pci_block_user_cfg_access
 #define pci_cfg_access_unlock pci_unblock_user_cfg_access
+#endif
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 18, 0)
+#define HAVE_PTE_MASK_PAGE_IOMAP
 #endif
 
 #ifndef PCI_MSIX_ENTRY_SIZE
@@ -17,7 +24,10 @@
 #define   PCI_MSIX_ENTRY_CTRL_MASKBIT   1
 #endif
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 34)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 34) && \
+	(!(defined(RHEL_RELEASE_CODE) && \
+	 RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(5, 9)))
+
 static int pci_num_vf(struct pci_dev *dev)
 {
 	struct iov {
@@ -35,10 +45,20 @@ static int pci_num_vf(struct pci_dev *dev)
 
 	return iov->nr_virtfn;
 }
-#endif
 
+#endif /* < 2.6.34 */
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 3, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 39) && \
+	(!(defined(RHEL_RELEASE_CODE) && \
+	   RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(6, 4)))
+
+#define kstrtoul strict_strtoul
+
+#endif /* < 2.6.39 */
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 3, 0) && \
+	(!(defined(RHEL_RELEASE_CODE) && \
+	   RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(6, 3)))
 
 /* Check if INTX works to control irq's.
  * Set's INTX_DISABLE flag and reads it back
@@ -92,12 +112,5 @@ static bool pci_check_and_mask_intx(struct pci_dev *pdev)
 
 	return pending;
 }
-#endif
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 37)
-/* Compatability wrapper for new kernel API for IRQ */
-#define irq_data	irq_desc
-#define irq_get_irq_data(irq)	irq_to_desc(irq)
-#define irq_data_get_msi(data)	get_irq_desc_msi(data)
-#endif
-
+#endif /* < 3.3.0 */

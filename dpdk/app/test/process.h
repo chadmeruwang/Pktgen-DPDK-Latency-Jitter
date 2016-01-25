@@ -34,8 +34,6 @@
 #ifndef _PROCESS_H_
 #define _PROCESS_H_
 
-#ifndef RTE_EXEC_ENV_BAREMETAL
-
 #ifdef RTE_EXEC_ENV_BSDAPP
 #define self "curproc"
 #define exe "file"
@@ -69,14 +67,14 @@ process_dup(const char *const argv[], int numargs, const char *env_value)
 		/* make a copy of the arguments to be passed to exec */
 		for (i = 0; i < numargs; i++)
 			argv_cpy[i] = strdup(argv[i]);
-	#ifdef RTE_LIBRTE_XEN_DOM0
-        	argv_cpy[i] = strdup("--xen-dom0");
-        	argv_cpy[i + 1] = NULL;
+#ifdef RTE_LIBRTE_XEN_DOM0
+		argv_cpy[i] = strdup("--xen-dom0");
+		argv_cpy[i + 1] = NULL;
 		num = numargs + 1;
-	#else
+#else
 		argv_cpy[i] = NULL;
 		num = numargs;
-	#endif
+#endif
 
 		/* close all open file descriptors, check /proc/self/fd to only
 		 * call close on open fds. Exclude fds 0, 1 and 2*/
@@ -98,10 +96,8 @@ process_dup(const char *const argv[], int numargs, const char *env_value)
 	}
 	/* parent process does a wait */
 	while (wait(&status) != pid)
-			;
+		;
 	return status;
 }
-
-#endif /* not baremetal */
 
 #endif /* _PROCESS_H_ */

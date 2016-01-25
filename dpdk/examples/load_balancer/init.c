@@ -48,7 +48,6 @@
 #include <rte_memory.h>
 #include <rte_memcpy.h>
 #include <rte_memzone.h>
-#include <rte_tailq.h>
 #include <rte_eal.h>
 #include <rte_per_lcore.h>
 #include <rte_launch.h>
@@ -95,26 +94,6 @@ static struct rte_eth_conf port_conf = {
 	},
 };
 
-static struct rte_eth_rxconf rx_conf = {
-	.rx_thresh = {
-		.pthresh = APP_DEFAULT_NIC_RX_PTHRESH,
-		.hthresh = APP_DEFAULT_NIC_RX_HTHRESH,
-		.wthresh = APP_DEFAULT_NIC_RX_WTHRESH,
-	},
-	.rx_free_thresh = APP_DEFAULT_NIC_RX_FREE_THRESH,
-	.rx_drop_en = APP_DEFAULT_NIC_RX_DROP_EN,
-};
-
-static struct rte_eth_txconf tx_conf = {
-	.tx_thresh = {
-		.pthresh = APP_DEFAULT_NIC_TX_PTHRESH,
-		.hthresh = APP_DEFAULT_NIC_TX_HTHRESH,
-		.wthresh = APP_DEFAULT_NIC_TX_WTHRESH,
-	},
-	.tx_free_thresh = APP_DEFAULT_NIC_TX_FREE_THRESH,
-	.tx_rs_thresh = APP_DEFAULT_NIC_TX_RS_THRESH,
-};
-
 static void
 app_assign_worker_ids(void)
 {
@@ -148,16 +127,10 @@ app_init_mbuf_pools(void)
 
 		snprintf(name, sizeof(name), "mbuf_pool_%u", socket);
 		printf("Creating the mbuf pool for socket %u ...\n", socket);
-		app.pools[socket] = rte_mempool_create(
-			name,
-			APP_DEFAULT_MEMPOOL_BUFFERS,
-			APP_DEFAULT_MBUF_SIZE,
+		app.pools[socket] = rte_pktmbuf_pool_create(
+			name, APP_DEFAULT_MEMPOOL_BUFFERS,
 			APP_DEFAULT_MEMPOOL_CACHE_SIZE,
-			sizeof(struct rte_pktmbuf_pool_private),
-			rte_pktmbuf_pool_init, NULL,
-			rte_pktmbuf_init, NULL,
-			socket,
-			0);
+			0, APP_DEFAULT_MBUF_DATA_SIZE, socket);
 		if (app.pools[socket] == NULL) {
 			rte_panic("Cannot create mbuf pool on socket %u\n", socket);
 		}
@@ -450,10 +423,6 @@ app_init_nics(void)
 	int ret;
 	uint32_t n_rx_queues, n_tx_queues;
 
-	if (rte_eal_pci_probe() < 0) {
-		rte_panic("Cannot probe PCI\n");
-	}
-
 	/* Init NIC ports and queues, then start the ports */
 	for (port = 0; port < APP_MAX_NIC_PORTS; port ++) {
 		struct rte_mempool *pool;
@@ -495,7 +464,7 @@ app_init_nics(void)
 				queue,
 				(uint16_t) app.nic_rx_ring_size,
 				socket,
-				&rx_conf,
+				NULL,
 				pool);
 			if (ret < 0) {
 				rte_panic("Cannot init RX queue %u for port %u (%d)\n",
@@ -516,7 +485,7 @@ app_init_nics(void)
 				0,
 				(uint16_t) app.nic_tx_ring_size,
 				socket,
-				&tx_conf);
+				NULL);
 			if (ret < 0) {
 				rte_panic("Cannot init TX queue 0 for port %d (%d)\n",
 					port,

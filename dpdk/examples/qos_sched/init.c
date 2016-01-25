@@ -42,6 +42,7 @@
 #include <rte_sched.h>
 #include <rte_cycles.h>
 #include <rte_string_fns.h>
+#include <rte_cfgfile.h>
 
 #include "main.h"
 #include "cfg_file.h"
@@ -284,16 +285,15 @@ app_load_cfg_profile(const char *profile)
 {
 	if (profile == NULL)
 		return 0;
-
-	struct cfg_file *cfg_file = cfg_load(profile, 0);
-	if (cfg_file == NULL)
+	struct rte_cfgfile *file = rte_cfgfile_load(profile, 0);
+	if (file == NULL)
 		rte_exit(EXIT_FAILURE, "Cannot load configuration profile %s\n", profile);
 
-	cfg_load_port(cfg_file, &port_params);
-	cfg_load_subport(cfg_file, subport_params);
-	cfg_load_pipe(cfg_file, pipe_profiles);
+	cfg_load_port(file, &port_params);
+	cfg_load_subport(file, subport_params);
+	cfg_load_pipe(file, pipe_profiles);
 
-	cfg_close(cfg_file);
+	rte_cfgfile_close(file);
 
 	return 0;
 }
@@ -303,9 +303,6 @@ int app_init(void)
 	uint32_t i;
 	char ring_name[MAX_NAME_LEN];
 	char pool_name[MAX_NAME_LEN];
-
-	if (rte_eal_pci_probe() < 0)
-		rte_exit(EXIT_FAILURE, "Cannot probe PCI\n");
 
 	if (rte_eth_dev_count() == 0)
 		rte_exit(EXIT_FAILURE, "No Ethernet port - bye\n");
@@ -338,13 +335,10 @@ int app_init(void)
 
 		/* create the mbuf pools for each RX Port */
 		snprintf(pool_name, MAX_NAME_LEN, "mbuf_pool%u", i);
-		qos_conf[i].mbuf_pool = rte_mempool_create(pool_name, mp_size, MBUF_SIZE,
-						burst_conf.rx_burst * 4,
-						sizeof(struct rte_pktmbuf_pool_private),
-						rte_pktmbuf_pool_init, NULL,
-						rte_pktmbuf_init, NULL,
-						rte_eth_dev_socket_id(qos_conf[i].rx_port),
-						0);
+		qos_conf[i].mbuf_pool = rte_pktmbuf_pool_create(pool_name,
+			mp_size, burst_conf.rx_burst * 4, 0,
+			RTE_MBUF_DEFAULT_BUF_SIZE,
+			rte_eth_dev_socket_id(qos_conf[i].rx_port));
 		if (qos_conf[i].mbuf_pool == NULL)
 			rte_exit(EXIT_FAILURE, "Cannot init mbuf pool for socket %u\n", i);
 

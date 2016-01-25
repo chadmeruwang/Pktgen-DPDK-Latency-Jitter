@@ -1,7 +1,7 @@
 #   BSD LICENSE
 #
-#   Copyright(c) 2010-2014 Intel Corporation. All rights reserved.
-#   Copyright(c) 2014 6WIND S.A.
+#   Copyright(c) 2010-2015 Intel Corporation. All rights reserved.
+#   Copyright(c) 2014-2015 6WIND S.A.
 #   All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or without
@@ -51,176 +51,108 @@ LDSCRIPT = $(RTE_LDSCRIPT)
 endif
 
 # default path for libs
-LDLIBS += -L$(RTE_SDK_BIN)/lib
+_LDLIBS-y += -L$(RTE_SDK_BIN)/lib
 
 #
-# Include libraries depending on config if NO_AUTOLIBS is not set
 # Order is important: from higher level to lower level
 #
-ifeq ($(NO_AUTOLIBS),)
 
-LDLIBS += --whole-archive
+_LDLIBS-y += --whole-archive
 
-ifeq ($(CONFIG_RTE_LIBRTE_DISTRIBUTOR),y)
-LDLIBS += -lrte_distributor
-endif
+_LDLIBS-$(CONFIG_RTE_BUILD_COMBINE_LIBS)    += -l$(RTE_LIBNAME)
 
-ifeq ($(CONFIG_RTE_LIBRTE_KNI),y)
+ifeq ($(CONFIG_RTE_BUILD_COMBINE_LIBS),n)
+
+_LDLIBS-$(CONFIG_RTE_LIBRTE_DISTRIBUTOR)    += -lrte_distributor
+_LDLIBS-$(CONFIG_RTE_LIBRTE_REORDER)        += -lrte_reorder
+
 ifeq ($(CONFIG_RTE_EXEC_ENV_LINUXAPP),y)
-LDLIBS += -lrte_kni
-endif
-endif
-
-ifeq ($(CONFIG_RTE_LIBRTE_IVSHMEM),y)
-ifeq ($(CONFIG_RTE_EXEC_ENV_LINUXAPP),y)
-LDLIBS += -lrte_ivshmem
-endif
+_LDLIBS-$(CONFIG_RTE_LIBRTE_KNI)            += -lrte_kni
+_LDLIBS-$(CONFIG_RTE_LIBRTE_IVSHMEM)        += -lrte_ivshmem
 endif
 
-ifeq ($(CONFIG_RTE_LIBRTE_PIPELINE),y)
-LDLIBS += -lrte_pipeline
+_LDLIBS-$(CONFIG_RTE_LIBRTE_PIPELINE)       += -lrte_pipeline
+_LDLIBS-$(CONFIG_RTE_LIBRTE_TABLE)          += -lrte_table
+_LDLIBS-$(CONFIG_RTE_LIBRTE_PORT)           += -lrte_port
+_LDLIBS-$(CONFIG_RTE_LIBRTE_TIMER)          += -lrte_timer
+_LDLIBS-$(CONFIG_RTE_LIBRTE_HASH)           += -lrte_hash
+_LDLIBS-$(CONFIG_RTE_LIBRTE_JOBSTATS)       += -lrte_jobstats
+_LDLIBS-$(CONFIG_RTE_LIBRTE_LPM)            += -lrte_lpm
+_LDLIBS-$(CONFIG_RTE_LIBRTE_POWER)          += -lrte_power
+_LDLIBS-$(CONFIG_RTE_LIBRTE_ACL)            += -lrte_acl
+_LDLIBS-$(CONFIG_RTE_LIBRTE_METER)          += -lrte_meter
+
+_LDLIBS-$(CONFIG_RTE_LIBRTE_SCHED)          += -lrte_sched
+_LDLIBS-$(CONFIG_RTE_LIBRTE_SCHED)          += -lm
+_LDLIBS-$(CONFIG_RTE_LIBRTE_SCHED)          += -lrt
+
+_LDLIBS-$(CONFIG_RTE_LIBRTE_VHOST)          += -lrte_vhost
+
+endif # ! CONFIG_RTE_BUILD_COMBINE_LIBS
+
+_LDLIBS-$(CONFIG_RTE_LIBRTE_PMD_PCAP)       += -lpcap
+
+ifeq ($(CONFIG_RTE_LIBRTE_VHOST_NUMA),y)
+_LDLIBS-$(CONFIG_RTE_LIBRTE_VHOST)          += -lnuma
 endif
 
-ifeq ($(CONFIG_RTE_LIBRTE_TABLE),y)
-LDLIBS += -lrte_table
+ifeq ($(CONFIG_RTE_LIBRTE_VHOST_USER),n)
+_LDLIBS-$(CONFIG_RTE_LIBRTE_VHOST)          += -lfuse
 endif
 
-ifeq ($(CONFIG_RTE_LIBRTE_PORT),y)
-LDLIBS += -lrte_port
-endif
+ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),n)
+_LDLIBS-$(CONFIG_RTE_LIBRTE_MLX4_PMD)       += -libverbs
+endif # ! CONFIG_RTE_BUILD_SHARED_LIBS
 
-ifeq ($(CONFIG_RTE_LIBRTE_TIMER),y)
-LDLIBS += -lrte_timer
-endif
+_LDLIBS-$(CONFIG_RTE_LIBRTE_BNX2X_PMD)      += -lz
 
-ifeq ($(CONFIG_RTE_LIBRTE_HASH),y)
-LDLIBS += -lrte_hash
-endif
+_LDLIBS-y += --start-group
 
-ifeq ($(CONFIG_RTE_LIBRTE_LPM),y)
-LDLIBS += -lrte_lpm
-endif
+ifeq ($(CONFIG_RTE_BUILD_COMBINE_LIBS),n)
 
-ifeq ($(CONFIG_RTE_LIBRTE_POWER),y)
-LDLIBS += -lrte_power
-endif
+_LDLIBS-$(CONFIG_RTE_LIBRTE_KVARGS)         += -lrte_kvargs
+_LDLIBS-$(CONFIG_RTE_LIBRTE_MBUF)           += -lrte_mbuf
+_LDLIBS-$(CONFIG_RTE_LIBRTE_IP_FRAG)        += -lrte_ip_frag
+_LDLIBS-$(CONFIG_RTE_LIBRTE_ETHER)          += -lethdev
+_LDLIBS-$(CONFIG_RTE_LIBRTE_MALLOC)         += -lrte_malloc
+_LDLIBS-$(CONFIG_RTE_LIBRTE_MEMPOOL)        += -lrte_mempool
+_LDLIBS-$(CONFIG_RTE_LIBRTE_RING)           += -lrte_ring
+_LDLIBS-$(CONFIG_RTE_LIBRTE_EAL)            += -lrte_eal
+_LDLIBS-$(CONFIG_RTE_LIBRTE_CMDLINE)        += -lrte_cmdline
+_LDLIBS-$(CONFIG_RTE_LIBRTE_CFGFILE)        += -lrte_cfgfile
+_LDLIBS-$(CONFIG_RTE_LIBRTE_PMD_BOND)       += -lrte_pmd_bond
 
-ifeq ($(CONFIG_RTE_LIBRTE_ACL),y)
-LDLIBS += -lrte_acl
-endif
-
-ifeq ($(CONFIG_RTE_LIBRTE_METER),y)
-LDLIBS += -lrte_meter
-endif
-
-ifeq ($(CONFIG_RTE_LIBRTE_SCHED),y)
-LDLIBS += -lrte_sched
-LDLIBS += -lm
-LDLIBS += -lrt
-endif
-
-LDLIBS += --start-group
-
-ifeq ($(CONFIG_RTE_LIBRTE_KVARGS),y)
-LDLIBS += -lrte_kvargs
-endif
-
-ifeq ($(CONFIG_RTE_LIBRTE_MBUF),y)
-LDLIBS += -lrte_mbuf
-endif
-
-ifeq ($(CONFIG_RTE_LIBRTE_IP_FRAG),y)
-LDLIBS += -lrte_ip_frag
-endif
-
-ifeq ($(CONFIG_RTE_LIBRTE_ETHER),y)
-LDLIBS += -lethdev
-endif
-
-ifeq ($(CONFIG_RTE_LIBRTE_MALLOC),y)
-LDLIBS += -lrte_malloc
-endif
-
-ifeq ($(CONFIG_RTE_LIBRTE_MEMPOOL),y)
-LDLIBS += -lrte_mempool
-endif
-
-ifeq ($(CONFIG_RTE_LIBRTE_RING),y)
-LDLIBS += -lrte_ring
-endif
-
-ifeq ($(CONFIG_RTE_LIBC),y)
-LDLIBS += -lc
-LDLIBS += -lm
-endif
-
-ifeq ($(CONFIG_RTE_LIBGLOSS),y)
-LDLIBS += -lgloss
-endif
-
-ifeq ($(CONFIG_RTE_LIBRTE_EAL),y)
-LDLIBS += -lrte_eal
-endif
-
-ifeq ($(CONFIG_RTE_LIBRTE_CMDLINE),y)
-LDLIBS += -lrte_cmdline
-endif
-
-ifeq ($(CONFIG_RTE_LIBRTE_CFGFILE),y)
-LDLIBS += -lrte_cfgfile
-endif
-
-ifeq ($(CONFIG_RTE_LIBRTE_PMD_BOND),y)
-LDLIBS += -lrte_pmd_bond
-endif
-
-ifeq ($(CONFIG_RTE_LIBRTE_PMD_XENVIRT),y)
-LDLIBS += -lrte_pmd_xenvirt
-LDLIBS += -lxenstore
-endif
+_LDLIBS-$(CONFIG_RTE_LIBRTE_PMD_XENVIRT)    += -lrte_pmd_xenvirt
+_LDLIBS-$(CONFIG_RTE_LIBRTE_PMD_XENVIRT)    += -lxenstore
 
 ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),n)
 # plugins (link only if static libraries)
 
-ifeq ($(CONFIG_RTE_LIBRTE_VMXNET3_PMD),y)
-LDLIBS += -lrte_pmd_vmxnet3_uio
-endif
+_LDLIBS-$(CONFIG_RTE_LIBRTE_VMXNET3_PMD)    += -lrte_pmd_vmxnet3_uio
+_LDLIBS-$(CONFIG_RTE_LIBRTE_VIRTIO_PMD)     += -lrte_pmd_virtio
+_LDLIBS-$(CONFIG_RTE_LIBRTE_BNX2X_PMD)      += -lrte_pmd_bnx2x
+_LDLIBS-$(CONFIG_RTE_LIBRTE_CXGBE_PMD)      += -lrte_pmd_cxgbe
+_LDLIBS-$(CONFIG_RTE_LIBRTE_ENIC_PMD)       += -lrte_pmd_enic
+_LDLIBS-$(CONFIG_RTE_LIBRTE_I40E_PMD)       += -lrte_pmd_i40e
+_LDLIBS-$(CONFIG_RTE_LIBRTE_FM10K_PMD)      += -lrte_pmd_fm10k
+_LDLIBS-$(CONFIG_RTE_LIBRTE_IXGBE_PMD)      += -lrte_pmd_ixgbe
+_LDLIBS-$(CONFIG_RTE_LIBRTE_E1000_PMD)      += -lrte_pmd_e1000
+_LDLIBS-$(CONFIG_RTE_LIBRTE_MLX4_PMD)       += -lrte_pmd_mlx4
+_LDLIBS-$(CONFIG_RTE_LIBRTE_MPIPE_PMD)      += -lrte_pmd_mpipe -lgxio
+_LDLIBS-$(CONFIG_RTE_LIBRTE_PMD_RING)       += -lrte_pmd_ring
+_LDLIBS-$(CONFIG_RTE_LIBRTE_PMD_PCAP)       += -lrte_pmd_pcap
+_LDLIBS-$(CONFIG_RTE_LIBRTE_PMD_AF_PACKET)  += -lrte_pmd_af_packet
+_LDLIBS-$(CONFIG_RTE_LIBRTE_PMD_NULL)       += -lrte_pmd_null
 
-ifeq ($(CONFIG_RTE_LIBRTE_VIRTIO_PMD),y)
-LDLIBS += -lrte_pmd_virtio_uio
-endif
+endif # ! $(CONFIG_RTE_BUILD_SHARED_LIB)
 
-ifeq ($(CONFIG_RTE_LIBRTE_I40E_PMD),y)
-LDLIBS += -lrte_pmd_i40e
-endif
+endif # ! CONFIG_RTE_BUILD_COMBINE_LIBS
 
-ifeq ($(CONFIG_RTE_LIBRTE_IXGBE_PMD),y)
-LDLIBS += -lrte_pmd_ixgbe
-endif
+_LDLIBS-y += $(EXECENV_LDLIBS)
+_LDLIBS-y += --end-group
+_LDLIBS-y += --no-whole-archive
 
-ifeq ($(CONFIG_RTE_LIBRTE_E1000_PMD),y)
-LDLIBS += -lrte_pmd_e1000
-endif
-
-ifeq ($(CONFIG_RTE_LIBRTE_PMD_RING),y)
-LDLIBS += -lrte_pmd_ring
-endif
-
-ifeq ($(CONFIG_RTE_LIBRTE_PMD_PCAP),y)
-LDLIBS += -lrte_pmd_pcap -lpcap
-endif
-
-endif # plugins
-
-LDLIBS += $(EXECENV_LDLIBS)
-
-LDLIBS += --end-group
-
-LDLIBS += --no-whole-archive
-
-endif # ifeq ($(NO_AUTOLIBS),)
-
-LDLIBS += $(CPU_LDLIBS)
+LDLIBS += $(_LDLIBS-y) $(CPU_LDLIBS) $(EXTRA_LDLIBS)
 
 .PHONY: all
 all: install
@@ -235,16 +167,11 @@ build: _postbuild
 
 exe2cmd = $(strip $(call dotfile,$(patsubst %,%.cmd,$(1))))
 
-ifeq ($(RTE_BUILD_COMBINE_LIBS),y)
-LDLIBS += -l$(RTE_LIBNAME)
-endif
-
 ifeq ($(LINK_USING_CC),1)
-LDLIBS := $(call linkerprefix,$(LDLIBS))
-LDFLAGS := $(call linkerprefix,$(LDFLAGS))
 override EXTRA_LDFLAGS := $(call linkerprefix,$(EXTRA_LDFLAGS))
 O_TO_EXE = $(CC) $(CFLAGS) $(LDFLAGS_$(@)) \
-	-Wl,-Map=$(@).map,--cref -o $@ $(OBJS-y) $(LDFLAGS) $(EXTRA_LDFLAGS) $(LDLIBS)
+	-Wl,-Map=$(@).map,--cref -o $@ $(OBJS-y) $(call linkerprefix,$(LDFLAGS)) \
+	$(EXTRA_LDFLAGS) $(call linkerprefix,$(LDLIBS))
 else
 O_TO_EXE = $(LD) $(LDFLAGS) $(LDFLAGS_$(@)) $(EXTRA_LDFLAGS) \
 	-Map=$(@).map --cref -o $@ $(OBJS-y) $(LDLIBS)

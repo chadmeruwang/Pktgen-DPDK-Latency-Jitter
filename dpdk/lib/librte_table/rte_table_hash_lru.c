@@ -36,6 +36,7 @@
 
 #include <rte_common.h>
 #include <rte_mbuf.h>
+#include <rte_memory.h>
 #include <rte_malloc.h>
 #include <rte_log.h>
 
@@ -43,6 +44,20 @@
 #include "rte_lru.h"
 
 #define KEYS_PER_BUCKET	4
+
+#ifdef RTE_TABLE_STATS_COLLECT
+
+#define RTE_TABLE_HASH_LRU_STATS_PKTS_IN_ADD(table, val) \
+	table->stats.n_pkts_in += val
+#define RTE_TABLE_HASH_LRU_STATS_PKTS_LOOKUP_MISS(table, val) \
+	table->stats.n_pkts_lookup_miss += val
+
+#else
+
+#define RTE_TABLE_HASH_LRU_STATS_PKTS_IN_ADD(table, val)
+#define RTE_TABLE_HASH_LRU_STATS_PKTS_LOOKUP_MISS(table, val)
+
+#endif
 
 struct bucket {
 	union {
@@ -62,6 +77,8 @@ struct grinder {
 };
 
 struct rte_table_hash {
+	struct rte_table_stats stats;
+
 	/* Input parameters */
 	uint32_t key_size;
 	uint32_t entry_size;
@@ -125,19 +142,6 @@ check_params_create(struct rte_table_hash_lru_params *params)
 		return -EINVAL;
 	}
 
-	/* signature offset */
-	if ((params->signature_offset & 0x3) != 0) {
-		RTE_LOG(ERR, TABLE, "%s: signature_offset invalid value\n",
-			__func__);
-		return -EINVAL;
-	}
-
-	/* key offset */
-	if ((params->key_offset & 0x7) != 0) {
-		RTE_LOG(ERR, TABLE, "%s: key_offset invalid value\n", __func__);
-		return -EINVAL;
-	}
-
 	return 0;
 }
 
@@ -147,7 +151,7 @@ rte_table_hash_lru_create(void *params, int socket_id, uint32_t entry_size)
 	struct rte_table_hash_lru_params *p =
 		(struct rte_table_hash_lru_params *) params;
 	struct rte_table_hash *t;
-	uint32_t total_size, table_meta_sz, table_meta_offset;
+	uint32_t total_size, table_meta_sz;
 	uint32_t bucket_sz, key_sz, key_stack_sz, data_sz;
 	uint32_t bucket_offset, key_offset, key_stack_offset, data_offset;
 	uint32_t i;
@@ -155,21 +159,21 @@ rte_table_hash_lru_create(void *params, int socket_id, uint32_t entry_size)
 	/* Check input parameters */
 	if ((check_params_create(p) != 0) ||
 		(!rte_is_power_of_2(entry_size)) ||
-		((sizeof(struct rte_table_hash) % CACHE_LINE_SIZE) != 0) ||
-		(sizeof(struct bucket) != (CACHE_LINE_SIZE / 2))) {
+		((sizeof(struct rte_table_hash) % RTE_CACHE_LINE_SIZE) != 0) ||
+		(sizeof(struct bucket) != (RTE_CACHE_LINE_SIZE / 2))) {
 		return NULL;
 	}
 
 	/* Memory allocation */
-	table_meta_sz = CACHE_LINE_ROUNDUP(sizeof(struct rte_table_hash));
-	bucket_sz = CACHE_LINE_ROUNDUP(p->n_buckets * sizeof(struct bucket));
-	key_sz = CACHE_LINE_ROUNDUP(p->n_keys * p->key_size);
-	key_stack_sz = CACHE_LINE_ROUNDUP(p->n_keys * sizeof(uint32_t));
-	data_sz = CACHE_LINE_ROUNDUP(p->n_keys * entry_size);
+	table_meta_sz = RTE_CACHE_LINE_ROUNDUP(sizeof(struct rte_table_hash));
+	bucket_sz = RTE_CACHE_LINE_ROUNDUP(p->n_buckets * sizeof(struct bucket));
+	key_sz = RTE_CACHE_LINE_ROUNDUP(p->n_keys * p->key_size);
+	key_stack_sz = RTE_CACHE_LINE_ROUNDUP(p->n_keys * sizeof(uint32_t));
+	data_sz = RTE_CACHE_LINE_ROUNDUP(p->n_keys * entry_size);
 	total_size = table_meta_sz + bucket_sz + key_sz + key_stack_sz +
 		data_sz;
 
-	t = rte_zmalloc_socket("TABLE", total_size, CACHE_LINE_SIZE, socket_id);
+	t = rte_zmalloc_socket("TABLE", total_size, RTE_CACHE_LINE_SIZE, socket_id);
 	if (t == NULL) {
 		RTE_LOG(ERR, TABLE,
 			"%s: Cannot allocate %u bytes for hash table\n",
@@ -192,11 +196,10 @@ rte_table_hash_lru_create(void *params, int socket_id, uint32_t entry_size)
 	/* Internal */
 	t->bucket_mask = t->n_buckets - 1;
 	t->key_size_shl = __builtin_ctzl(p->key_size);
-	t->data_size_shl = __builtin_ctzl(p->key_size);
+	t->data_size_shl = __builtin_ctzl(entry_size);
 
 	/* Tables */
-	table_meta_offset = 0;
-	bucket_offset = table_meta_offset + table_meta_sz;
+	bucket_offset = 0;
 	key_offset = bucket_offset + bucket_sz;
 	key_stack_offset = key_offset + key_sz;
 	data_offset = key_stack_offset + key_stack_sz;
@@ -368,6 +371,9 @@ static int rte_table_hash_lru_lookup_unoptimized(
 	struct rte_table_hash *t = (struct rte_table_hash *) table;
 	uint64_t pkts_mask_out = 0;
 
+	__rte_unused uint32_t n_pkts_in = __builtin_popcountll(pkts_mask);
+	RTE_TABLE_HASH_LRU_STATS_PKTS_IN_ADD(t, n_pkts_in);
+
 	for ( ; pkts_mask; ) {
 		struct bucket *bkt;
 		struct rte_mbuf *pkt;
@@ -412,6 +418,7 @@ static int rte_table_hash_lru_lookup_unoptimized(
 	}
 
 	*lookup_hit_mask = pkts_mask_out;
+	RTE_TABLE_HASH_LRU_STATS_PKTS_LOOKUP_MISS(t, n_pkts_in - __builtin_popcountll(pkts_mask_out));
 	return 0;
 }
 
@@ -804,6 +811,9 @@ static int rte_table_hash_lru_lookup(
 	uint64_t pkts_mask_out = 0, pkts_mask_match_many = 0;
 	int status = 0;
 
+	__rte_unused uint32_t n_pkts_in = __builtin_popcountll(pkts_mask);
+	RTE_TABLE_HASH_LRU_STATS_PKTS_IN_ADD(t, n_pkts_in);
+
 	/* Cannot run the pipeline with less than 7 packets */
 	if (__builtin_popcountll(pkts_mask) < 7)
 		return rte_table_hash_lru_lookup_unoptimized(table, pkts,
@@ -916,6 +926,7 @@ static int rte_table_hash_lru_lookup(
 	}
 
 	*lookup_hit_mask = pkts_mask_out;
+	RTE_TABLE_HASH_LRU_STATS_PKTS_LOOKUP_MISS(t, n_pkts_in - __builtin_popcountll(pkts_mask_out));
 	return status;
 }
 
@@ -932,6 +943,9 @@ static int rte_table_hash_lru_lookup_dosig(
 	uint64_t pkt20_index, pkt21_index, pkt30_index, pkt31_index;
 	uint64_t pkts_mask_out = 0, pkts_mask_match_many = 0;
 	int status = 0;
+
+	__rte_unused uint32_t n_pkts_in = __builtin_popcountll(pkts_mask);
+	RTE_TABLE_HASH_LRU_STATS_PKTS_IN_ADD(t, n_pkts_in);
 
 	/* Cannot run the pipeline with less than 7 packets */
 	if (__builtin_popcountll(pkts_mask) < 7)
@@ -1045,7 +1059,22 @@ static int rte_table_hash_lru_lookup_dosig(
 	}
 
 	*lookup_hit_mask = pkts_mask_out;
+	RTE_TABLE_HASH_LRU_STATS_PKTS_LOOKUP_MISS(t, n_pkts_in - __builtin_popcountll(pkts_mask_out));
 	return status;
+}
+
+static int
+rte_table_hash_lru_stats_read(void *table, struct rte_table_stats *stats, int clear)
+{
+	struct rte_table_hash *t = (struct rte_table_hash *) table;
+
+	if (stats != NULL)
+		memcpy(stats, &t->stats, sizeof(t->stats));
+
+	if (clear)
+		memset(&t->stats, 0, sizeof(t->stats));
+
+	return 0;
 }
 
 struct rte_table_ops rte_table_hash_lru_ops = {
@@ -1054,6 +1083,7 @@ struct rte_table_ops rte_table_hash_lru_ops = {
 	.f_add = rte_table_hash_lru_entry_add,
 	.f_delete = rte_table_hash_lru_entry_delete,
 	.f_lookup = rte_table_hash_lru_lookup,
+	.f_stats = rte_table_hash_lru_stats_read,
 };
 
 struct rte_table_ops rte_table_hash_lru_dosig_ops = {
@@ -1062,4 +1092,5 @@ struct rte_table_ops rte_table_hash_lru_dosig_ops = {
 	.f_add = rte_table_hash_lru_entry_add,
 	.f_delete = rte_table_hash_lru_entry_delete,
 	.f_lookup = rte_table_hash_lru_lookup_dosig,
+	.f_stats = rte_table_hash_lru_stats_read,
 };

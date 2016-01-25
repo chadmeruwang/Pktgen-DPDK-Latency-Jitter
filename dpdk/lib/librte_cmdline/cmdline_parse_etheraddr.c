@@ -105,43 +105,46 @@ my_ether_aton(const char *a)
 		errno = 0;
 		o[i] = strtoul(a, &end, 16);
 		if (errno != 0 || end == a || (end[0] != ':' && end[0] != 0))
-			return (NULL);
+			return NULL;
 		a = end + 1;
 	} while (++i != sizeof (o) / sizeof (o[0]) && end[0] != 0);
 
 	/* Junk at the end of line */
 	if (end[0] != 0)
-		return (NULL);
+		return NULL;
 
 	/* Support the format XX:XX:XX:XX:XX:XX */
 	if (i == ETHER_ADDR_LEN) {
 		while (i-- != 0) {
 			if (o[i] > UINT8_MAX)
-				return (NULL);
+				return NULL;
 			ether_addr.ea_oct[i] = (uint8_t)o[i];
 		}
 	/* Support the format XXXX:XXXX:XXXX */
 	} else if (i == ETHER_ADDR_LEN / 2) {
 		while (i-- != 0) {
 			if (o[i] > UINT16_MAX)
-				return (NULL);
+				return NULL;
 			ether_addr.ea_oct[i * 2] = (uint8_t)(o[i] >> 8);
 			ether_addr.ea_oct[i * 2 + 1] = (uint8_t)(o[i] & 0xff);
 		}
 	/* unknown format */
 	} else
-		return (NULL);
+		return NULL;
 
 	return (struct ether_addr *)&ether_addr;
 }
 
 int
 cmdline_parse_etheraddr(__attribute__((unused)) cmdline_parse_token_hdr_t *tk,
-			const char *buf, void *res)
+	const char *buf, void *res, unsigned ressize)
 {
 	unsigned int token_len = 0;
 	char ether_str[ETHER_ADDRSTRLENLONG+1];
 	struct ether_addr *tmp;
+
+	if (res && ressize < sizeof(struct ether_addr))
+		return -1;
 
 	if (!buf || ! *buf)
 		return -1;

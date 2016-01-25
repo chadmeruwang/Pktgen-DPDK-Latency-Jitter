@@ -47,9 +47,8 @@
 #include "compat_netmap.h"
 
 
-#define	BUF_SIZE	2048
-#define MBUF_SIZE	(BUF_SIZE + sizeof(struct rte_mbuf) + \
-	RTE_PKTMBUF_HEADROOM)
+#define BUF_SIZE	RTE_MBUF_DEFAULT_DATAROOM
+#define MBUF_DATA_SIZE	(BUF_SIZE + RTE_PKTMBUF_HEADROOM)
 
 #define MBUF_PER_POOL	8192
 
@@ -67,29 +66,6 @@ struct rte_eth_conf eth_conf = {
 	},
 };
 
-struct rte_eth_txconf tx_conf = {
-	.tx_thresh = {
-	    .pthresh = 36,
-	    .hthresh = 0,
-	    .wthresh = 0,
-	},
-	.tx_free_thresh = 0,
-	.tx_rs_thresh = 0,
-	.txq_flags = (ETH_TXQ_FLAGS_NOMULTSEGS |
-			ETH_TXQ_FLAGS_NOVLANOFFL |
-			ETH_TXQ_FLAGS_NOXSUMSCTP |
-			ETH_TXQ_FLAGS_NOXSUMUDP |
-			ETH_TXQ_FLAGS_NOXSUMTCP)
-};
-
-struct rte_eth_rxconf rx_conf = {
-	.rx_thresh = {
-	    .pthresh = 8,
-	    .hthresh = 8,
-	    .wthresh = 4,
-	},
-};
-
 #define	MAX_QUEUE_NUM	1
 #define	RX_QUEUE_NUM	1
 #define	TX_QUEUE_NUM	1
@@ -103,8 +79,6 @@ struct rte_eth_rxconf rx_conf = {
 
 struct rte_netmap_port_conf port_conf = {
 	.eth_conf = &eth_conf,
-	.tx_conf  = &tx_conf,
-	.rx_conf  = &rx_conf,
 	.socket_id = SOCKET_ID_ANY,
 	.nr_tx_rings = TX_QUEUE_NUM,
 	.nr_rx_rings = RX_QUEUE_NUM,
@@ -294,18 +268,11 @@ int main(int argc, char *argv[])
 	if (ports.num == 0)
 		rte_exit(EXIT_FAILURE, "no ports specified\n");
 
-	err = rte_eal_pci_probe();
-	if (err < 0)
-		rte_exit(EXIT_FAILURE, "rte_eal_pci_probe(): error %d\n", err);
-
 	if (rte_eth_dev_count() < 1)
 		rte_exit(EXIT_FAILURE, "Not enough ethernet ports available\n");
 
-	pool = rte_mempool_create("mbuf_pool", MBUF_PER_POOL, MBUF_SIZE, 32,
-				sizeof(struct rte_pktmbuf_pool_private),
-				rte_pktmbuf_pool_init, NULL,
-				rte_pktmbuf_init, NULL,
-				rte_socket_id(), 0);
+	pool = rte_pktmbuf_pool_create("mbuf_pool", MBUF_PER_POOL, 32, 0,
+		MBUF_DATA_SIZE, rte_socket_id());
 	if (pool == NULL)
 		rte_exit(EXIT_FAILURE, "Couldn't create mempool\n");
 

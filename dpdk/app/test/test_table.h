@@ -65,7 +65,7 @@
 #define PORT_TX_RING_SIZE   512
 #define RING_RX_SIZE        128
 #define RING_TX_SIZE        128
-#define POOL_BUFFER_SIZE (2048 + sizeof(struct rte_mbuf) + RTE_PKTMBUF_HEADROOM)
+#define POOL_BUFFER_SIZE    RTE_MBUF_DEFAULT_BUF_SIZE
 #define POOL_SIZE           (32 * 1024)
 #define POOL_CACHE_SIZE     256
 #define BURST_SIZE          8
@@ -73,7 +73,6 @@
 #define MAX_DUMMY_PORTS     2
 #define MP_NAME             "dummy_port_mempool"
 #define MBUF_COUNT          (8000 * MAX_DUMMY_PORTS)
-#define MBUF_SIZE        (2048 + sizeof(struct rte_mbuf) + RTE_PKTMBUF_HEADROOM)
 #define MP_CACHE_SZ         256
 #define MP_SOCKET           0
 #define MP_FLAGS            0
@@ -126,7 +125,6 @@
 } while (0)
 
 /* Function definitions */
-int test_table(void);
 uint64_t pipeline_test_hash(
 	void *key,
 	__attribute__((unused)) uint32_t key_size,
@@ -180,7 +178,7 @@ struct rte_table {
 	rte_pipeline_table_action_handler_hit f_action;
 	uint32_t table_next_id;
 	uint32_t table_next_id_valid;
-	uint8_t actions_lookup_miss[CACHE_LINE_SIZE];
+	uint8_t actions_lookup_miss[RTE_CACHE_LINE_SIZE];
 	uint32_t action_data_size;
 	void *h_table;
 };

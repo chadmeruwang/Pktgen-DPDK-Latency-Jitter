@@ -37,7 +37,7 @@
 /**
  * @file
  *
- * RTE ACL temporary (build phase) memory managment.
+ * RTE ACL temporary (build phase) memory management.
  * Contains structures and functions to manage temporary (used by build only)
  * memory. Memory allocated in large blocks to speed 'free' when trie is
  * destructed (finish of build phase).
@@ -48,6 +48,7 @@ extern "C" {
 #endif
 
 #include <rte_acl_osdep.h>
+#include <setjmp.h>
 
 struct tb_mem_block {
 	struct tb_mem_block *next;
@@ -61,6 +62,8 @@ struct tb_mem_pool {
 	size_t               alignment;
 	size_t               min_alloc;
 	size_t               alloc;
+	/* jump target in case of memory allocation failure. */
+	sigjmp_buf           fail;
 };
 
 void *tb_alloc(struct tb_mem_pool *pool, size_t size);

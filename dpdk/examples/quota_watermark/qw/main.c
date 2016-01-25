@@ -104,8 +104,8 @@ static void send_pause_frame(uint8_t port_id, uint16_t duration)
     pause_frame->opcode = rte_cpu_to_be_16(0x0001);
     pause_frame->param  = rte_cpu_to_be_16(duration);
 
-    mbuf->pkt.pkt_len  = 60;
-    mbuf->pkt.data_len = 60;
+    mbuf->pkt_len  = 60;
+    mbuf->data_len = 60;
 
     rte_eth_tx_burst(port_id, 0, &mbuf, 1);
 }
@@ -304,7 +304,7 @@ send_stage(__attribute__((unused)) void *args)
 }
 
 int
-MAIN(int argc, char **argv)
+main(int argc, char **argv)
 {
     int ret;
     unsigned int lcore_id, master_lcore_id, last_lcore_id;
@@ -335,11 +335,8 @@ MAIN(int argc, char **argv)
         rte_exit(EXIT_FAILURE, "Invalid quota/watermark argument(s)\n");
 
     /* Create a pool of mbuf to store packets */
-    mbuf_pool = rte_mempool_create("mbuf_pool", MBUF_PER_POOL, MBUF_SIZE, 32,
-                                   sizeof(struct rte_pktmbuf_pool_private),
-                                   rte_pktmbuf_pool_init, NULL,
-                                   rte_pktmbuf_init, NULL,
-                                   rte_socket_id(), 0);
+    mbuf_pool = rte_pktmbuf_pool_create("mbuf_pool", MBUF_PER_POOL, 32, 0,
+	    MBUF_DATA_SIZE, rte_socket_id());
     if (mbuf_pool == NULL)
         rte_panic("%s\n", rte_strerror(rte_errno));
 

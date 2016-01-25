@@ -48,7 +48,6 @@
 #include <rte_memory.h>
 #include <rte_memcpy.h>
 #include <rte_memzone.h>
-#include <rte_tailq.h>
 #include <rte_eal.h>
 #include <rte_per_lcore.h>
 #include <rte_launch.h>
@@ -73,8 +72,6 @@
 #include <rte_string_fns.h>
 #include <rte_acl.h>
 
-#include "main.h"
-
 #define DO_RFC_1812_CHECKS
 
 #define RTE_LOGTYPE_L3FWD RTE_LOGTYPE_USER1
@@ -82,8 +79,6 @@
 #define MAX_JUMBO_PKT_LEN  9600
 
 #define MEMPOOL_CACHE_SIZE 256
-
-#define MBUF_SIZE (2048 + sizeof(struct rte_mbuf) + RTE_PKTMBUF_HEADROOM)
 
 /*
  * This expression is used to calculate the number of mbufs needed
@@ -99,25 +94,6 @@
 	nb_ports * n_tx_queue * RTE_TEST_TX_DESC_DEFAULT +	\
 	nb_lcores * MEMPOOL_CACHE_SIZE),			\
 	(unsigned)8192)
-
-/*
- * RX and TX Prefetch, Host, and Write-back threshold values should be
- * carefully set for optimal performance. Consult the network
- * controller's datasheet and supporting DPDK documentation for guidance
- * on how these parameters should be set.
- */
-#define RX_PTHRESH 8 /**< Default values of RX prefetch threshold reg. */
-#define RX_HTHRESH 8 /**< Default values of RX host threshold reg. */
-#define RX_WTHRESH 4 /**< Default values of RX write-back threshold reg. */
-
-/*
- * These default values are optimized for use with the Intel(R) 82599 10 GbE
- * Controller and the DPDK ixgbe PMD. Consider using other values for other
- * network controllers and/or network drivers.
- */
-#define TX_PTHRESH 36 /**< Default values of TX prefetch threshold reg. */
-#define TX_HTHRESH 0  /**< Default values of TX host threshold reg. */
-#define TX_WTHRESH 0  /**< Default values of TX write-back threshold reg. */
 
 #define MAX_PKT_BURST 32
 #define BURST_TX_DRAIN_US 100 /* TX drain every ~100us */
@@ -195,36 +171,13 @@ static struct rte_eth_conf port_conf = {
 	.rx_adv_conf = {
 		.rss_conf = {
 			.rss_key = NULL,
-			.rss_hf = ETH_RSS_IPV4 | ETH_RSS_IPV4_TCP
-				| ETH_RSS_IPV4_UDP
-				| ETH_RSS_IPV6 | ETH_RSS_IPV6_EX
-				| ETH_RSS_IPV6_TCP | ETH_RSS_IPV6_TCP_EX
-				| ETH_RSS_IPV6_UDP | ETH_RSS_IPV6_UDP_EX,
+			.rss_hf = ETH_RSS_IP | ETH_RSS_UDP |
+				ETH_RSS_TCP | ETH_RSS_SCTP,
 		},
 	},
 	.txmode = {
 		.mq_mode = ETH_MQ_TX_NONE,
 	},
-};
-
-static const struct rte_eth_rxconf rx_conf = {
-	.rx_thresh = {
-		.pthresh = RX_PTHRESH,
-		.hthresh = RX_HTHRESH,
-		.wthresh = RX_WTHRESH,
-	},
-	.rx_free_thresh = 32,
-};
-
-static const struct rte_eth_txconf tx_conf = {
-	.tx_thresh = {
-		.pthresh = TX_PTHRESH,
-		.hthresh = TX_HTHRESH,
-		.wthresh = TX_WTHRESH,
-	},
-	.tx_free_thresh = 0, /* Use PMD default values */
-	.tx_rs_thresh = 0, /* Use PMD default values */
-	.txq_flags = 0x0,
 };
 
 static struct rte_mempool *pktmbuf_pool[NB_SOCKETS];
@@ -263,9 +216,9 @@ send_single_packet(struct rte_mbuf *m, uint8_t port);
 #define OFF_IPV42PROTO (offsetof(struct ipv4_hdr, next_proto_id))
 #define OFF_IPV62PROTO (offsetof(struct ipv6_hdr, proto))
 #define MBUF_IPV4_2PROTO(m)	\
-	(rte_pktmbuf_mtod((m), uint8_t *) + OFF_ETHHEAD + OFF_IPV42PROTO)
+	rte_pktmbuf_mtod_offset((m), uint8_t *, OFF_ETHHEAD + OFF_IPV42PROTO)
 #define MBUF_IPV6_2PROTO(m)	\
-	(rte_pktmbuf_mtod((m), uint8_t *) + OFF_ETHHEAD + OFF_IPV62PROTO)
+	rte_pktmbuf_mtod_offset((m), uint8_t *, OFF_ETHHEAD + OFF_IPV62PROTO)
 
 #define GET_CB_FIELD(in, fd, base, lim, dlm)	do {            \
 	unsigned long val;                                      \
@@ -276,15 +229,6 @@ send_single_packet(struct rte_mbuf *m, uint8_t port);
 		return -EINVAL;                               \
 	(fd) = (typeof(fd))val;                                 \
 	(in) = end + 1;                                         \
-} while (0)
-
-#define CLASSIFY(context, data, res, num, cat) do {		\
-	if (scalar)						\
-		rte_acl_classify_scalar((context), (data),	\
-		(res), (num), (cat));				\
-	else							\
-		rte_acl_classify((context), (data),		\
-		(res), (num), (cat));				\
 } while (0)
 
 /*
@@ -620,9 +564,9 @@ dump_acl4_rule(struct rte_mbuf *m, uint32_t sig)
 {
 	uint32_t offset = sig & ~ACL_DENY_SIGNATURE;
 	unsigned char a, b, c, d;
-	struct ipv4_hdr *ipv4_hdr = (struct ipv4_hdr *)
-					(rte_pktmbuf_mtod(m, unsigned char *) +
-					sizeof(struct ether_hdr));
+	struct ipv4_hdr *ipv4_hdr = rte_pktmbuf_mtod_offset(m,
+							    struct ipv4_hdr *,
+							    sizeof(struct ether_hdr));
 
 	uint32_t_to_char(rte_bswap32(ipv4_hdr->src_addr), &a, &b, &c, &d);
 	printf("Packet Src:%hhu.%hhu.%hhu.%hhu ", a, b, c, d);
@@ -644,9 +588,9 @@ dump_acl6_rule(struct rte_mbuf *m, uint32_t sig)
 {
 	unsigned i;
 	uint32_t offset = sig & ~ACL_DENY_SIGNATURE;
-	struct ipv6_hdr *ipv6_hdr = (struct ipv6_hdr *)
-					(rte_pktmbuf_mtod(m, unsigned char *) +
-					sizeof(struct ether_hdr));
+	struct ipv6_hdr *ipv6_hdr = rte_pktmbuf_mtod_offset(m,
+							    struct ipv6_hdr *,
+							    sizeof(struct ether_hdr));
 
 	printf("Packet Src");
 	for (i = 0; i < RTE_DIM(ipv6_hdr->src_addr); i += sizeof(uint16_t))
@@ -701,15 +645,18 @@ prepare_one_packet(struct rte_mbuf **pkts_in, struct acl_search_t *acl,
 	struct ipv4_hdr *ipv4_hdr;
 	struct rte_mbuf *pkt = pkts_in[index];
 
+#ifdef RTE_NEXT_ABI
+	if (RTE_ETH_IS_IPV4_HDR(pkt->packet_type)) {
+#else
 	int type = pkt->ol_flags & (PKT_RX_IPV4_HDR | PKT_RX_IPV6_HDR);
 
 	if (type == PKT_RX_IPV4_HDR) {
-
-		ipv4_hdr = (struct ipv4_hdr *)(rte_pktmbuf_mtod(pkt,
-			unsigned char *) + sizeof(struct ether_hdr));
+#endif
+		ipv4_hdr = rte_pktmbuf_mtod_offset(pkt, struct ipv4_hdr *,
+						   sizeof(struct ether_hdr));
 
 		/* Check to make sure the packet is valid (RFC1812) */
-		if (is_valid_ipv4_pkt(ipv4_hdr, pkt->pkt.pkt_len) >= 0) {
+		if (is_valid_ipv4_pkt(ipv4_hdr, pkt->pkt_len) >= 0) {
 
 			/* Update time to live and header checksum */
 			--(ipv4_hdr->time_to_live);
@@ -723,9 +670,11 @@ prepare_one_packet(struct rte_mbuf **pkts_in, struct acl_search_t *acl,
 			/* Not a valid IPv4 packet */
 			rte_pktmbuf_free(pkt);
 		}
-
+#ifdef RTE_NEXT_ABI
+	} else if (RTE_ETH_IS_IPV6_HDR(pkt->packet_type)) {
+#else
 	} else if (type == PKT_RX_IPV6_HDR) {
-
+#endif
 		/* Fill acl structure */
 		acl->data_ipv6[acl->num_ipv6] = MBUF_IPV6_2PROTO(pkt);
 		acl->m_ipv6[(acl->num_ipv6)++] = pkt;
@@ -743,17 +692,22 @@ prepare_one_packet(struct rte_mbuf **pkts_in, struct acl_search_t *acl,
 {
 	struct rte_mbuf *pkt = pkts_in[index];
 
+#ifdef RTE_NEXT_ABI
+	if (RTE_ETH_IS_IPV4_HDR(pkt->packet_type)) {
+#else
 	int type = pkt->ol_flags & (PKT_RX_IPV4_HDR | PKT_RX_IPV6_HDR);
 
 	if (type == PKT_RX_IPV4_HDR) {
-
+#endif
 		/* Fill acl structure */
 		acl->data_ipv4[acl->num_ipv4] = MBUF_IPV4_2PROTO(pkt);
 		acl->m_ipv4[(acl->num_ipv4)++] = pkt;
 
-
+#ifdef RTE_NEXT_ABI
+	} else if (RTE_ETH_IS_IPV6_HDR(pkt->packet_type)) {
+#else
 	} else if (type == PKT_RX_IPV6_HDR) {
-
+#endif
 		/* Fill acl structure */
 		acl->data_ipv6[acl->num_ipv6] = MBUF_IPV6_2PROTO(pkt);
 		acl->m_ipv6[(acl->num_ipv6)++] = pkt;
@@ -801,10 +755,17 @@ send_one_packet(struct rte_mbuf *m, uint32_t res)
 		/* in the ACL list, drop it */
 #ifdef L3FWDACL_DEBUG
 		if ((res & ACL_DENY_SIGNATURE) != 0) {
+#ifdef RTE_NEXT_ABI
+			if (RTE_ETH_IS_IPV4_HDR(m->packet_type))
+				dump_acl4_rule(m, res);
+			else if (RTE_ETH_IS_IPV6_HDR(m->packet_type))
+				dump_acl6_rule(m, res);
+#else
 			if (m->ol_flags & PKT_RX_IPV4_HDR)
 				dump_acl4_rule(m, res);
 			else
 				dump_acl6_rule(m, res);
+#endif /* RTE_NEXT_ABI */
 		}
 #endif
 		rte_pktmbuf_free(m);
@@ -1097,13 +1058,13 @@ add_rules(const char *rule_path,
 
 	fseek(fh, 0, SEEK_SET);
 
-	acl_rules = (uint8_t *)calloc(acl_num, rule_size);
+	acl_rules = calloc(acl_num, rule_size);
 
 	if (NULL == acl_rules)
 		rte_exit(EXIT_FAILURE, "%s: failed to malloc memory\n",
 			__func__);
 
-	route_rules = (uint8_t *)calloc(route_num, rule_size);
+	route_rules = calloc(route_num, rule_size);
 
 	if (NULL == route_rules)
 		rte_exit(EXIT_FAILURE, "%s: failed to malloc memory\n",
@@ -1216,6 +1177,11 @@ setup_acl(struct rte_acl_rule *route_base,
 	if ((context = rte_acl_create(&acl_param)) == NULL)
 		rte_exit(EXIT_FAILURE, "Failed to create ACL context\n");
 
+	if (parm_config.scalar && rte_acl_set_ctx_classify(context,
+			RTE_ACL_CLASSIFY_SCALAR) != 0)
+		rte_exit(EXIT_FAILURE,
+			"Failed to setup classify method for  ACL context\n");
+
 	if (rte_acl_add_rules(context, route_base, route_num) < 0)
 			rte_exit(EXIT_FAILURE, "add rules failed\n");
 
@@ -1223,8 +1189,9 @@ setup_acl(struct rte_acl_rule *route_base,
 			rte_exit(EXIT_FAILURE, "add rules failed\n");
 
 	/* Perform builds */
-	acl_build_param.num_categories = DEFAULT_MAX_CATEGORIES;
+	memset(&acl_build_param, 0, sizeof(acl_build_param));
 
+	acl_build_param.num_categories = DEFAULT_MAX_CATEGORIES;
 	acl_build_param.num_fields = dim;
 	memcpy(&acl_build_param.defs, ipv6 ? ipv6_defs : ipv4_defs,
 		ipv6 ? sizeof(ipv6_defs) : sizeof(ipv4_defs));
@@ -1292,6 +1259,10 @@ app_acl_init(void)
 				acl_log("Socket %d of lcore %u is out "
 					"of range %d\n",
 					socketid, lcore_id, NB_SOCKETS);
+				free(route_base_ipv4);
+				free(route_base_ipv6);
+				free(acl_base_ipv4);
+				free(acl_base_ipv6);
 				return -1;
 			}
 
@@ -1436,10 +1407,8 @@ main_loop(__attribute__((unused)) void *dummy)
 	int socketid;
 	const uint64_t drain_tsc = (rte_get_tsc_hz() + US_PER_S - 1)
 			/ US_PER_S * BURST_TX_DRAIN_US;
-	int scalar = parm_config.scalar;
 
 	prev_tsc = 0;
-
 	lcore_id = rte_lcore_id();
 	qconf = &lcore_conf[lcore_id];
 	socketid = rte_lcore_to_socket_id(lcore_id);
@@ -1503,7 +1472,8 @@ main_loop(__attribute__((unused)) void *dummy)
 					nb_rx);
 
 				if (acl_search.num_ipv4) {
-					CLASSIFY(acl_config.acx_ipv4[socketid],
+					rte_acl_classify(
+						acl_config.acx_ipv4[socketid],
 						acl_search.data_ipv4,
 						acl_search.res_ipv4,
 						acl_search.num_ipv4,
@@ -1515,7 +1485,8 @@ main_loop(__attribute__((unused)) void *dummy)
 				}
 
 				if (acl_search.num_ipv6) {
-					CLASSIFY(acl_config.acx_ipv6[socketid],
+					rte_acl_classify(
+						acl_config.acx_ipv6[socketid],
 						acl_search.data_ipv6,
 						acl_search.res_ipv6,
 						acl_search.num_ipv6,
@@ -1863,13 +1834,9 @@ parse_args(int argc, char **argv)
 static void
 print_ethaddr(const char *name, const struct ether_addr *eth_addr)
 {
-	printf("%s%02X:%02X:%02X:%02X:%02X:%02X", name,
-		eth_addr->addr_bytes[0],
-		eth_addr->addr_bytes[1],
-		eth_addr->addr_bytes[2],
-		eth_addr->addr_bytes[3],
-		eth_addr->addr_bytes[4],
-		eth_addr->addr_bytes[5]);
+	char buf[ETHER_ADDR_FMT_SIZE];
+	ether_format_addr(buf, ETHER_ADDR_FMT_SIZE, eth_addr);
+	printf("%s%s", name, buf);
 }
 
 static int
@@ -1896,12 +1863,10 @@ init_mem(unsigned nb_mbuf)
 		if (pktmbuf_pool[socketid] == NULL) {
 			snprintf(s, sizeof(s), "mbuf_pool_%d", socketid);
 			pktmbuf_pool[socketid] =
-				rte_mempool_create(s, nb_mbuf, MBUF_SIZE,
-					MEMPOOL_CACHE_SIZE,
-					sizeof(struct rte_pktmbuf_pool_private),
-					rte_pktmbuf_pool_init, NULL,
-					rte_pktmbuf_init, NULL,
-					socketid, 0);
+				rte_pktmbuf_pool_create(s, nb_mbuf,
+					MEMPOOL_CACHE_SIZE, 0,
+					RTE_MBUF_DEFAULT_BUF_SIZE,
+					socketid);
 			if (pktmbuf_pool[socketid] == NULL)
 				rte_exit(EXIT_FAILURE,
 					"Cannot init mbuf pool on socket %d\n",
@@ -1970,9 +1935,11 @@ check_all_ports_link_status(uint8_t port_num, uint32_t port_mask)
 }
 
 int
-MAIN(int argc, char **argv)
+main(int argc, char **argv)
 {
 	struct lcore_conf *qconf;
+	struct rte_eth_dev_info dev_info;
+	struct rte_eth_txconf *txconf;
 	int ret;
 	unsigned nb_ports;
 	uint16_t queueid;
@@ -1998,9 +1965,6 @@ MAIN(int argc, char **argv)
 	ret = init_lcore_rx_queues();
 	if (ret < 0)
 		rte_exit(EXIT_FAILURE, "init_lcore_rx_queues failed\n");
-
-	if (rte_eal_pci_probe() < 0)
-		rte_exit(EXIT_FAILURE, "Cannot probe PCI\n");
 
 	nb_ports = rte_eth_dev_count();
 	if (nb_ports > RTE_MAX_ETHPORTS)
@@ -2063,8 +2027,13 @@ MAIN(int argc, char **argv)
 
 			printf("txq=%u,%d,%d ", lcore_id, queueid, socketid);
 			fflush(stdout);
+
+			rte_eth_dev_info_get(portid, &dev_info);
+			txconf = &dev_info.default_txconf;
+			if (port_conf.rxmode.jumbo_frame)
+				txconf->txq_flags = 0;
 			ret = rte_eth_tx_queue_setup(portid, queueid, nb_txd,
-						     socketid, &tx_conf);
+						     socketid, txconf);
 			if (ret < 0)
 				rte_exit(EXIT_FAILURE,
 					"rte_eth_tx_queue_setup: err=%d, "
@@ -2098,7 +2067,7 @@ MAIN(int argc, char **argv)
 			fflush(stdout);
 
 			ret = rte_eth_rx_queue_setup(portid, queueid, nb_rxd,
-					socketid, &rx_conf,
+					socketid, NULL,
 					pktmbuf_pool[socketid]);
 			if (ret < 0)
 				rte_exit(EXIT_FAILURE,

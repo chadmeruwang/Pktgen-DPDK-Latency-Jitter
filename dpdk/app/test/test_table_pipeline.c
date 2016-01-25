@@ -31,12 +31,6 @@
  *   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef RTE_LIBRTE_PIPELINE
-
-#include "test.h"
-
-#else
-
 #include <string.h>
 #include <rte_pipeline.h>
 #include <rte_log.h>
@@ -44,11 +38,6 @@
 #include <rte_hexdump.h>
 #include "test_table.h"
 #include "test_table_pipeline.h"
-
-#define RTE_CBUF_UINT8_PTR(cbuf, offset)			\
-	(&cbuf->data[offset])
-#define RTE_CBUF_UINT32_PTR(cbuf, offset)			\
-	(&cbuf->data32[offset/sizeof(uint32_t)])
 
 #if 0
 
@@ -504,8 +493,9 @@ test_pipeline_single_filter(int test_type, int expected_count)
 			printf("Got %d object(s) from ring %d!\n", ret, i);
 			for (j = 0; j < ret; j++) {
 				mbuf = (struct rte_mbuf *)objs[j];
-				rte_hexdump(stdout, "Object:", mbuf->pkt.data,
-					mbuf->pkt.data_len);
+				rte_hexdump(stdout, "Object:",
+					rte_pktmbuf_mtod(mbuf, char *),
+					mbuf->data_len);
 				rte_pktmbuf_free(mbuf);
 			}
 			tx_count += ret;
@@ -599,5 +589,3 @@ test_table_pipeline(void)
 
 	return 0;
 }
-
-#endif

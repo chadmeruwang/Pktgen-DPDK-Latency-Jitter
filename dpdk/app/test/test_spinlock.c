@@ -43,7 +43,6 @@
 #include <rte_memzone.h>
 #include <rte_per_lcore.h>
 #include <rte_launch.h>
-#include <rte_tailq.h>
 #include <rte_eal.h>
 #include <rte_per_lcore.h>
 #include <rte_lcore.h>
@@ -225,7 +224,7 @@ test_spinlock_try(__attribute__((unused)) void *arg)
  * Test rte_eal_get_lcore_state() in addition to spinlocks
  * as we have "waiting" then "running" lcores.
  */
-int
+static int
 test_spinlock(void)
 {
 	int ret = 0;
@@ -333,3 +332,9 @@ test_spinlock(void)
 
 	return ret;
 }
+
+static struct test_command spinlock_cmd = {
+	.command = "spinlock_autotest",
+	.callback = test_spinlock,
+};
+REGISTER_TEST_COMMAND(spinlock_cmd);

@@ -34,7 +34,6 @@
 #include <stddef.h>
 
 #include <rte_debug.h>
-#include <rte_tailq.h>
 
 #include "ip_frag_common.h"
 
@@ -74,7 +73,7 @@ ipv4_frag_reassemble(const struct ip_frag_pkt *fp)
 
 		/* error - hole in the packet. */
 		if (m == prev) {
-			return (NULL);
+			return NULL;
 		}
 	}
 
@@ -86,16 +85,15 @@ ipv4_frag_reassemble(const struct ip_frag_pkt *fp)
 	m->ol_flags |= PKT_TX_IP_CKSUM;
 
 	/* update ipv4 header for the reassmebled packet */
-	ip_hdr = (struct ipv4_hdr*)(rte_pktmbuf_mtod(m, uint8_t *) +
-		m->pkt.vlan_macip.f.l2_len);
+	ip_hdr = rte_pktmbuf_mtod_offset(m, struct ipv4_hdr *, m->l2_len);
 
 	ip_hdr->total_length = rte_cpu_to_be_16((uint16_t)(fp->total_size +
-		m->pkt.vlan_macip.f.l3_len));
+		m->l3_len));
 	ip_hdr->fragment_offset = (uint16_t)(ip_hdr->fragment_offset &
 		rte_cpu_to_be_16(IPV4_HDR_DF_FLAG));
 	ip_hdr->hdr_checksum = 0;
 
-	return (m);
+	return m;
 }
 
 /*
@@ -121,7 +119,7 @@ rte_ipv4_frag_reassemble_packet(struct rte_ip_frag_tbl *tbl,
 {
 	struct ip_frag_pkt *fp;
 	struct ip_frag_key key;
-	const uint64_t *psd;
+	const unaligned_uint64_t *psd;
 	uint16_t ip_len;
 	uint16_t flag_offset, ip_ofs, ip_flag;
 
@@ -129,7 +127,7 @@ rte_ipv4_frag_reassemble_packet(struct rte_ip_frag_tbl *tbl,
 	ip_ofs = (uint16_t)(flag_offset & IPV4_HDR_OFFSET_MASK);
 	ip_flag = (uint16_t)(flag_offset & IPV4_HDR_MF_FLAG);
 
-	psd = (uint64_t *)&ip_hdr->src_addr;
+	psd = (unaligned_uint64_t *)&ip_hdr->src_addr;
 	/* use first 8 bytes only */
 	key.src_dst[0] = psd[0];
 	key.id = ip_hdr->packet_id;
@@ -137,7 +135,7 @@ rte_ipv4_frag_reassemble_packet(struct rte_ip_frag_tbl *tbl,
 
 	ip_ofs *= IPV4_HDR_OFFSET_UNITS;
 	ip_len = (uint16_t)(rte_be_to_cpu_16(ip_hdr->total_length) -
-		mb->pkt.vlan_macip.f.l3_len);
+		mb->l3_len);
 
 	IP_FRAG_LOG(DEBUG, "%s:%d:\n"
 		"mbuf: %p, tms: %" PRIu64
@@ -152,7 +150,7 @@ rte_ipv4_frag_reassemble_packet(struct rte_ip_frag_tbl *tbl,
 	/* try to find/add entry into the fragment's table. */
 	if ((fp = ip_frag_find(tbl, dr, &key, tms)) == NULL) {
 		IP_FRAG_MBUF2DR(dr, mb);
-		return (NULL);
+		return NULL;
 	}
 
 	IP_FRAG_LOG(DEBUG, "%s:%d:\n"
@@ -179,5 +177,5 @@ rte_ipv4_frag_reassemble_packet(struct rte_ip_frag_tbl *tbl,
 		fp, fp->key.src_dst[0], fp->key.id, fp->start,
 		fp->total_size, fp->frag_size, fp->last_idx);
 
-	return (mb);
+	return mb;
 }

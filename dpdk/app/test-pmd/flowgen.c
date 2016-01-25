@@ -52,7 +52,6 @@
 #include <rte_memcpy.h>
 #include <rte_memzone.h>
 #include <rte_launch.h>
-#include <rte_tailq.h>
 #include <rte_eal.h>
 #include <rte_per_lcore.h>
 #include <rte_lcore.h>
@@ -96,13 +95,13 @@ tx_mbuf_alloc(struct rte_mempool *mp)
 	struct rte_mbuf *m;
 
 	m = __rte_mbuf_raw_alloc(mp);
-	__rte_mbuf_sanity_check_raw(m, RTE_MBUF_PKT, 0);
+	__rte_mbuf_sanity_check_raw(m, 0);
 	return (m);
 }
 
 
 static inline uint16_t
-ip_sum(const uint16_t *hdr, int hdr_len)
+ip_sum(const unaligned_uint16_t *hdr, int hdr_len)
 {
 	uint32_t sum = 0;
 
@@ -137,7 +136,7 @@ pkt_burst_flow_gen(struct fwd_stream *fs)
 	struct ether_hdr *eth_hdr;
 	struct ipv4_hdr *ip_hdr;
 	struct udp_hdr *udp_hdr;
-	uint16_t vlan_tci;
+	uint16_t vlan_tci, vlan_tci_outer;
 	uint16_t ol_flags;
 	uint16_t nb_rx;
 	uint16_t nb_tx;
@@ -164,6 +163,7 @@ pkt_burst_flow_gen(struct fwd_stream *fs)
 
 	mbp = current_fwd_lcore()->mbp;
 	vlan_tci = ports[fs->tx_port].tx_vlan_id;
+	vlan_tci_outer = ports[fs->tx_port].tx_vlan_id_outer;
 	ol_flags = ports[fs->tx_port].tx_ol_flags;
 
 	for (nb_pkt = 0; nb_pkt < nb_pkt_per_burst; nb_pkt++) {
@@ -171,11 +171,11 @@ pkt_burst_flow_gen(struct fwd_stream *fs)
 		if (!pkt)
 			break;
 
-		pkt->pkt.data_len = pkt_size;
-		pkt->pkt.next = NULL;
+		pkt->data_len = pkt_size;
+		pkt->next = NULL;
 
 		/* Initialize Ethernet header. */
-		eth_hdr = (struct ether_hdr *)pkt->pkt.data;
+		eth_hdr = rte_pktmbuf_mtod(pkt, struct ether_hdr *);
 		ether_addr_copy(&cfg_ether_dst, &eth_hdr->d_addr);
 		ether_addr_copy(&cfg_ether_src, &eth_hdr->s_addr);
 		eth_hdr->ether_type = rte_cpu_to_be_16(ETHER_TYPE_IPv4);
@@ -194,7 +194,7 @@ pkt_burst_flow_gen(struct fwd_stream *fs)
 							   next_flow);
 		ip_hdr->total_length	= RTE_CPU_TO_BE_16(pkt_size -
 							   sizeof(*eth_hdr));
-		ip_hdr->hdr_checksum	= ip_sum((uint16_t *)ip_hdr,
+		ip_hdr->hdr_checksum	= ip_sum((unaligned_uint16_t *)ip_hdr,
 						 sizeof(*ip_hdr));
 
 		/* Initialize UDP header. */
@@ -205,13 +205,14 @@ pkt_burst_flow_gen(struct fwd_stream *fs)
 		udp_hdr->dgram_len	= RTE_CPU_TO_BE_16(pkt_size -
 							   sizeof(*eth_hdr) -
 							   sizeof(*ip_hdr));
-		pkt->pkt.nb_segs		= 1;
-		pkt->pkt.pkt_len		= pkt_size;
-		pkt->ol_flags			= ol_flags;
-		pkt->pkt.vlan_macip.f.vlan_tci	= vlan_tci;
-		pkt->pkt.vlan_macip.f.l2_len	= sizeof(struct ether_hdr);
-		pkt->pkt.vlan_macip.f.l3_len	= sizeof(struct ipv4_hdr);
-		pkts_burst[nb_pkt]		= pkt;
+		pkt->nb_segs		= 1;
+		pkt->pkt_len		= pkt_size;
+		pkt->ol_flags		= ol_flags;
+		pkt->vlan_tci		= vlan_tci;
+		pkt->vlan_tci_outer	= vlan_tci_outer;
+		pkt->l2_len		= sizeof(struct ether_hdr);
+		pkt->l3_len		= sizeof(struct ipv4_hdr);
+		pkts_burst[nb_pkt]	= pkt;
 
 		next_flow = (next_flow + 1) % cfg_n_flows;
 	}

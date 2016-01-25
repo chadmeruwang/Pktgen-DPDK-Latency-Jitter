@@ -63,19 +63,9 @@ ifneq ($(BUILDING_RTE_SDK),)
   RTE_TOOLCHAIN := $(CONFIG_RTE_TOOLCHAIN:"%"=%)
   RTE_TARGET := $(RTE_ARCH)-$(RTE_MACHINE)-$(RTE_EXEC_ENV)-$(RTE_TOOLCHAIN)
   RTE_SDK_BIN := $(RTE_OUTPUT)
-  RTE_BUILD_SHARED_LIB := $(CONFIG_RTE_BUILD_SHARED_LIB:"%"=%)
-  ifeq ($(RTE_BUILD_SHARED_LIB),)
-    RTE_BUILD_SHARED_LIB := n
-  endif
-  RTE_BUILD_COMBINE_LIBS := $(CONFIG_RTE_BUILD_COMBINE_LIBS:"%"=%)
-  ifeq ($(RTE_BUILD_COMBINE_LIBS),)
-    RTE_BUILD_COMBINE_LIBS := n
-  endif
-  RTE_LIBNAME := $(CONFIG_RTE_LIBNAME:"%"=%)
-  ifeq ($(RTE_LIBNAME),)
-    RTE_LIBNAME := intel_dpdk
-  endif
 endif
+
+RTE_LIBNAME := dpdk
 
 # RTE_TARGET is deducted from config when we are building the SDK.
 # Else, when building an external app, RTE_TARGET must be specified
@@ -85,9 +75,9 @@ $(error RTE_TARGET is not defined)
 endif
 
 ifeq ($(BUILDING_RTE_SDK),)
-# if we are building an external app/lib, include rte.extvars.mk that will
+# if we are building an external app/lib, include internal/rte.extvars.mk that will
 # define RTE_OUTPUT, RTE_SRCDIR, RTE_EXTMK, RTE_SDK_BIN, (etc ...)
-include $(RTE_SDK)/mk/rte.extvars.mk
+include $(RTE_SDK)/mk/internal/rte.extvars.mk
 endif
 
 CONFIG_RTE_LIBRTE_E1000_PMD = $(CONFIG_RTE_LIBRTE_IGB_PMD)

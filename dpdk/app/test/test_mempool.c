@@ -47,7 +47,6 @@
 #include <rte_memzone.h>
 #include <rte_launch.h>
 #include <rte_cycles.h>
-#include <rte_tailq.h>
 #include <rte_eal.h>
 #include <rte_per_lcore.h>
 #include <rte_lcore.h>
@@ -76,7 +75,7 @@
 #define TIME_S 5
 #define MEMPOOL_ELT_SIZE 2048
 #define MAX_KEEP 128
-#define MEMPOOL_SIZE ((RTE_MAX_LCORE*(MAX_KEEP+RTE_MEMPOOL_CACHE_MAX_SIZE))-1)
+#define MEMPOOL_SIZE ((rte_lcore_count()*(MAX_KEEP+RTE_MEMPOOL_CACHE_MAX_SIZE))-1)
 
 static struct rte_mempool *mp;
 static struct rte_mempool *mp_cache, *mp_nocache;
@@ -360,7 +359,7 @@ test_mempool_basic_ex(struct rte_mempool * mp)
 	if (mp == NULL)
 		return ret;
 
-	obj = (void **)rte_zmalloc("test_mempool_basic_ex", (MEMPOOL_SIZE * sizeof(void *)), 0);
+	obj = rte_calloc("test_mempool_basic_ex", MEMPOOL_SIZE , sizeof(void *), 0);
 	if (obj == NULL) {
 		printf("test_mempool_basic_ex fail to rte_malloc\n");
 		return ret;
@@ -455,7 +454,7 @@ test_mempool_xmem_misc(void)
 	return (0);
 }
 
-int
+static int
 test_mempool(void)
 {
 	rte_atomic32_init(&synchro);
@@ -521,3 +520,9 @@ test_mempool(void)
 
 	return 0;
 }
+
+static struct test_command mempool_cmd = {
+	.command = "mempool_autotest",
+	.callback = test_mempool,
+};
+REGISTER_TEST_COMMAND(mempool_cmd);

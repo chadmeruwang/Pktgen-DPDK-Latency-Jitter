@@ -42,7 +42,7 @@
 
 #include "test.h"
 
-int
+static int
 test_errno(void)
 {
 	const char *rte_retval;
@@ -58,7 +58,7 @@ test_errno(void)
 	/* use a small selection of standard errors for testing */
 	int std_errs[] = {EAGAIN, EBADF, EACCES, EINTR, EINVAL};
 	/* test ALL registered RTE error codes for overlap */
-	int rte_errs[] = {E_RTE_SECONDARY, E_RTE_NO_CONFIG, E_RTE_NO_TAILQ};
+	int rte_errs[] = {E_RTE_SECONDARY, E_RTE_NO_CONFIG};
 	unsigned i;
 
 	rte_errno = 0;
@@ -112,3 +112,9 @@ test_errno(void)
 
 	return 0;
 }
+
+static struct test_command errno_cmd = {
+	.command = "errno_autotest",
+	.callback = test_errno,
+};
+REGISTER_TEST_COMMAND(errno_cmd);

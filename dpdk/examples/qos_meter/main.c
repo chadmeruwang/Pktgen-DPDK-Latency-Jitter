@@ -70,7 +70,6 @@
  * Buffer pool configuration
  *
  ***/
-#define MBUF_SIZE           (2048 + sizeof(struct rte_mbuf) + RTE_PKTMBUF_HEADROOM)
 #define NB_MBUF             8192
 #define MEMPOOL_CACHE_SIZE  256
 
@@ -100,26 +99,6 @@ static struct rte_eth_conf port_conf = {
 	.txmode = {
 		.mq_mode = ETH_DCB_NONE,
 	},
-};
-
-static const struct rte_eth_rxconf rx_conf = {
-	.rx_thresh = {
-		.pthresh = 8, /* RX prefetch threshold reg */
-		.hthresh = 8, /* RX host threshold reg */
-		.wthresh = 4, /* RX write-back threshold reg */
-	},
-	.rx_free_thresh = 32,
-};
-
-static const struct rte_eth_txconf tx_conf = {
-	.tx_thresh = {
-		.pthresh = 36, /* TX prefetch threshold reg */
-		.hthresh = 0,  /* TX host threshold reg */
-		.wthresh = 0,  /* TX write-back threshold reg */
-	},
-	.tx_free_thresh = 0,
-	.tx_rs_thresh = 0,
-	.txq_flags = 0x0,
 };
 
 #define NIC_RX_QUEUE_DESC               128
@@ -358,7 +337,7 @@ parse_args(int argc, char **argv)
 }
 
 int
-MAIN(int argc, char **argv)
+main(int argc, char **argv)
 {
 	uint32_t lcore_id;
 	int ret;
@@ -380,25 +359,25 @@ MAIN(int argc, char **argv)
 		rte_exit(EXIT_FAILURE, "Invalid input arguments\n");
 
 	/* Buffer pool init */
-	pool = rte_mempool_create("pool", NB_MBUF, MBUF_SIZE, MEMPOOL_CACHE_SIZE,
-		sizeof(struct rte_pktmbuf_pool_private), rte_pktmbuf_pool_init, NULL,
-		rte_pktmbuf_init, NULL, rte_socket_id(), 0);
+	pool = rte_pktmbuf_pool_create("pool", NB_MBUF, MEMPOOL_CACHE_SIZE,
+		0, RTE_MBUF_DEFAULT_BUF_SIZE, rte_socket_id());
 	if (pool == NULL)
 		rte_exit(EXIT_FAILURE, "Buffer pool creation error\n");
-
-	if (rte_eal_pci_probe() < 0)
-		rte_exit(EXIT_FAILURE, "PCI probe error\n");
 
 	/* NIC init */
 	ret = rte_eth_dev_configure(port_rx, 1, 1, &port_conf);
 	if (ret < 0)
 		rte_exit(EXIT_FAILURE, "Port %d configuration error (%d)\n", port_rx, ret);
 
-	ret = rte_eth_rx_queue_setup(port_rx, NIC_RX_QUEUE, NIC_RX_QUEUE_DESC, rte_eth_dev_socket_id(port_rx), &rx_conf, pool);
+	ret = rte_eth_rx_queue_setup(port_rx, NIC_RX_QUEUE, NIC_RX_QUEUE_DESC,
+				rte_eth_dev_socket_id(port_rx),
+				NULL, pool);
 	if (ret < 0)
 		rte_exit(EXIT_FAILURE, "Port %d RX queue setup error (%d)\n", port_rx, ret);
 
-	ret = rte_eth_tx_queue_setup(port_rx, NIC_TX_QUEUE, NIC_TX_QUEUE_DESC, rte_eth_dev_socket_id(port_rx), &tx_conf);
+	ret = rte_eth_tx_queue_setup(port_rx, NIC_TX_QUEUE, NIC_TX_QUEUE_DESC,
+				rte_eth_dev_socket_id(port_rx),
+				NULL);
 	if (ret < 0)
 	rte_exit(EXIT_FAILURE, "Port %d TX queue setup error (%d)\n", port_rx, ret);
 
@@ -406,11 +385,15 @@ MAIN(int argc, char **argv)
 	if (ret < 0)
 		rte_exit(EXIT_FAILURE, "Port %d configuration error (%d)\n", port_tx, ret);
 
-	ret = rte_eth_rx_queue_setup(port_tx, NIC_RX_QUEUE, NIC_RX_QUEUE_DESC, rte_eth_dev_socket_id(port_tx), &rx_conf, pool);
+	ret = rte_eth_rx_queue_setup(port_tx, NIC_RX_QUEUE, NIC_RX_QUEUE_DESC,
+				rte_eth_dev_socket_id(port_tx),
+				NULL, pool);
 	if (ret < 0)
 		rte_exit(EXIT_FAILURE, "Port %d RX queue setup error (%d)\n", port_tx, ret);
 
-	ret = rte_eth_tx_queue_setup(port_tx, NIC_TX_QUEUE, NIC_TX_QUEUE_DESC, rte_eth_dev_socket_id(port_tx), &tx_conf);
+	ret = rte_eth_tx_queue_setup(port_tx, NIC_TX_QUEUE, NIC_TX_QUEUE_DESC,
+				rte_eth_dev_socket_id(port_tx),
+				NULL);
 	if (ret < 0)
 		rte_exit(EXIT_FAILURE, "Port %d TX queue setup error (%d)\n", port_tx, ret);
 

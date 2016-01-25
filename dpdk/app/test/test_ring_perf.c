@@ -253,7 +253,7 @@ static void
 run_on_core_pair(struct lcore_pair *cores,
 		lcore_function_t f1, lcore_function_t f2)
 {
-	struct thread_params param1 = {.size = 0}, param2 = {.size = 0};
+	struct thread_params param1 = {0}, param2 = {0};
 	unsigned i;
 	for (i = 0; i < sizeof(bulk_sizes)/sizeof(bulk_sizes[0]); i++) {
 		lcore_count = 0;
@@ -381,7 +381,7 @@ test_bulk_enqueue_dequeue(void)
 	}
 }
 
-int
+static int
 test_ring_perf(void)
 {
 	struct lcore_pair cores;
@@ -413,3 +413,9 @@ test_ring_perf(void)
 	}
 	return 0;
 }
+
+static struct test_command ring_perf_cmd = {
+	.command = "ring_perf_autotest",
+	.callback = test_ring_perf,
+};
+REGISTER_TEST_COMMAND(ring_perf_cmd);

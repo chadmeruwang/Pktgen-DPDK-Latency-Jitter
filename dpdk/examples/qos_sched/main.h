@@ -40,12 +40,6 @@ extern "C" {
 
 #include <rte_sched.h>
 
-#ifdef RTE_EXEC_ENV_BAREMETAL
-#error "Baremetal is not supported"
-#else
-#define MAIN main
-#endif
-
 #define RTE_LOGTYPE_APP RTE_LOGTYPE_USER1
 
 /*
@@ -56,7 +50,6 @@ extern "C" {
 #define APP_RX_DESC_DEFAULT 128
 #define APP_TX_DESC_DEFAULT 256
 
-#define MBUF_SIZE (1528 + sizeof(struct rte_mbuf) + RTE_PKTMBUF_HEADROOM)
 #define APP_RING_SIZE (8*1024)
 #define NB_MBUF   (2*1024*1024)
 
@@ -77,7 +70,7 @@ extern "C" {
 
 #define MAX_DATA_STREAMS (RTE_MAX_LCORE/2)
 #define MAX_SCHED_SUBPORTS		8
-#define MAX_SCHED_PIPES  		4096
+#define MAX_SCHED_PIPES		4096
 
 #ifndef APP_COLLECT_STAT
 #define APP_COLLECT_STAT		1
@@ -177,7 +170,6 @@ extern struct ring_thresh tx_thresh;
 
 extern struct rte_sched_port_params port_params;
 
-int MAIN(int argc, char **argv);
 int app_parse_args(int argc, char **argv);
 int app_init(void);
 

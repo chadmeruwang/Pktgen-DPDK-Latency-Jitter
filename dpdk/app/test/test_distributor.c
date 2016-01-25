@@ -33,11 +33,12 @@
 
 #include "test.h"
 
-#ifdef RTE_LIBRTE_DISTRIBUTOR
 #include <unistd.h>
 #include <string.h>
 #include <rte_cycles.h>
 #include <rte_errno.h>
+#include <rte_mempool.h>
+#include <rte_mbuf.h>
 #include <rte_distributor.h>
 
 #define ITER_POWER 20 /* log 2 of how many iterations we do when timing. */
@@ -121,7 +122,7 @@ sanity_test(struct rte_distributor *d, struct rte_mempool *p)
 	/* now set all hash values in all buffers to zero, so all pkts go to the
 	 * one worker thread */
 	for (i = 0; i < BURST; i++)
-		bufs[i]->pkt.hash.rss = 0;
+		bufs[i]->hash.usr = 0;
 
 	rte_distributor_process(d, bufs, BURST);
 	rte_distributor_flush(d);
@@ -143,7 +144,7 @@ sanity_test(struct rte_distributor *d, struct rte_mempool *p)
 	if (rte_lcore_count() >= 3) {
 		clear_packet_count();
 		for (i = 0; i < BURST; i++)
-			bufs[i]->pkt.hash.rss = (i & 1) << 8;
+			bufs[i]->hash.usr = (i & 1) << 8;
 
 		rte_distributor_process(d, bufs, BURST);
 		rte_distributor_flush(d);
@@ -168,7 +169,7 @@ sanity_test(struct rte_distributor *d, struct rte_mempool *p)
 	 * so load gets distributed */
 	clear_packet_count();
 	for (i = 0; i < BURST; i++)
-		bufs[i]->pkt.hash.rss = i;
+		bufs[i]->hash.usr = i;
 
 	rte_distributor_process(d, bufs, BURST);
 	rte_distributor_flush(d);
@@ -200,7 +201,7 @@ sanity_test(struct rte_distributor *d, struct rte_mempool *p)
 		return -1;
 	}
 	for (i = 0; i < BIG_BATCH; i++)
-		many_bufs[i]->pkt.hash.rss = i << 2;
+		many_bufs[i]->hash.usr = i << 2;
 
 	for (i = 0; i < BIG_BATCH/BURST; i++) {
 		rte_distributor_process(d, &many_bufs[i*BURST], BURST);
@@ -281,8 +282,8 @@ sanity_test_with_mbuf_alloc(struct rte_distributor *d, struct rte_mempool *p)
 		while (rte_mempool_get_bulk(p, (void *)bufs, BURST) < 0)
 			rte_distributor_process(d, NULL, 0);
 		for (j = 0; j < BURST; j++) {
-			bufs[j]->pkt.hash.rss = (i+j) << 1;
-			bufs[j]->refcnt = 1;
+			bufs[j]->hash.usr = (i+j) << 1;
+			rte_mbuf_refcnt_set(bufs[j], 1);
 		}
 
 		rte_distributor_process(d, bufs, BURST);
@@ -360,7 +361,7 @@ sanity_test_with_worker_shutdown(struct rte_distributor *d,
 	/* now set all hash values in all buffers to zero, so all pkts go to the
 	 * one worker thread */
 	for (i = 0; i < BURST; i++)
-		bufs[i]->pkt.hash.rss = 0;
+		bufs[i]->hash.usr = 0;
 
 	rte_distributor_process(d, bufs, BURST);
 	/* at this point, we will have processed some packets and have a full
@@ -373,7 +374,7 @@ sanity_test_with_worker_shutdown(struct rte_distributor *d,
 		return -1;
 	}
 	for (i = 0; i < BURST; i++)
-		bufs[i]->pkt.hash.rss = 0;
+		bufs[i]->hash.usr = 0;
 
 	/* get worker zero to quit */
 	zero_quit = 1;
@@ -417,7 +418,7 @@ test_flush_with_worker_shutdown(struct rte_distributor *d,
 	/* now set all hash values in all buffers to zero, so all pkts go to the
 	 * one worker thread */
 	for (i = 0; i < BURST; i++)
-		bufs[i]->pkt.hash.rss = 0;
+		bufs[i]->hash.usr = 0;
 
 	rte_distributor_process(d, bufs, BURST);
 	/* at this point, we will have processed some packets and have a full
@@ -489,7 +490,7 @@ quit_workers(struct rte_distributor *d, struct rte_mempool *p)
 	zero_quit = 0;
 	quit = 1;
 	for (i = 0; i < num_workers; i++)
-		bufs[i]->pkt.hash.rss = i << 1;
+		bufs[i]->hash.usr = i << 1;
 	rte_distributor_process(d, bufs, num_workers);
 
 	rte_mempool_put_bulk(p, (void *)bufs, num_workers);
@@ -501,9 +502,7 @@ quit_workers(struct rte_distributor *d, struct rte_mempool *p)
 	worker_idx = 0;
 }
 
-#define MBUF_SIZE (2048 + sizeof(struct rte_mbuf) + RTE_PKTMBUF_HEADROOM)
-
-int
+static int
 test_distributor(void)
 {
 	static struct rte_distributor *d;
@@ -529,12 +528,8 @@ test_distributor(void)
 	const unsigned nb_bufs = (511 * rte_lcore_count()) < BIG_BATCH ?
 			(BIG_BATCH * 2) - 1 : (511 * rte_lcore_count());
 	if (p == NULL) {
-		p = rte_mempool_create("DT_MBUF_POOL", nb_bufs,
-				MBUF_SIZE, BURST,
-				sizeof(struct rte_pktmbuf_pool_private),
-				rte_pktmbuf_pool_init, NULL,
-				rte_pktmbuf_init, NULL,
-				rte_socket_id(), 0);
+		p = rte_pktmbuf_pool_create("DT_MBUF_POOL", nb_bufs, BURST,
+			0, RTE_MBUF_DEFAULT_BUF_SIZE, rte_socket_id());
 		if (p == NULL) {
 			printf("Error creating mempool\n");
 			return -1;
@@ -581,15 +576,8 @@ err:
 	return -1;
 }
 
-#else
-
-#include <stdio.h>
-
-int
-test_distributor(void)
-{
-	printf("Distributor is not enabled in configuration\n");
-	return 0;
-}
-
-#endif
+static struct test_command distributor_cmd = {
+	.command = "distributor_autotest",
+	.callback = test_distributor,
+};
+REGISTER_TEST_COMMAND(distributor_cmd);

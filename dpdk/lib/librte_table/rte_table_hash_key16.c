@@ -35,6 +35,7 @@
 
 #include <rte_common.h>
 #include <rte_mbuf.h>
+#include <rte_memory.h>
 #include <rte_malloc.h>
 #include <rte_log.h>
 
@@ -44,6 +45,20 @@
 #define RTE_TABLE_HASH_KEY_SIZE						16
 
 #define RTE_BUCKET_ENTRY_VALID						0x1LLU
+
+#ifdef RTE_TABLE_STATS_COLLECT
+
+#define RTE_TABLE_HASH_KEY16_STATS_PKTS_IN_ADD(table, val) \
+	table->stats.n_pkts_in += val
+#define RTE_TABLE_HASH_KEY16_STATS_PKTS_LOOKUP_MISS(table, val) \
+	table->stats.n_pkts_lookup_miss += val
+
+#else
+
+#define RTE_TABLE_HASH_KEY16_STATS_PKTS_IN_ADD(table, val)
+#define RTE_TABLE_HASH_KEY16_STATS_PKTS_LOOKUP_MISS(table, val)
+
+#endif
 
 struct rte_bucket_4_16 {
 	/* Cache line 0 */
@@ -60,6 +75,8 @@ struct rte_bucket_4_16 {
 };
 
 struct rte_table_hash {
+	struct rte_table_stats stats;
+
 	/* Input parameters */
 	uint32_t n_buckets;
 	uint32_t n_entries_per_bucket;
@@ -88,18 +105,6 @@ check_params_create_lru(struct rte_table_hash_key16_lru_params *params) {
 		return -EINVAL;
 	}
 
-	/* signature offset */
-	if ((params->signature_offset & 0x3) != 0) {
-		RTE_LOG(ERR, TABLE, "%s: invalid signature_offset\n", __func__);
-		return -EINVAL;
-	}
-
-	/* key offset */
-	if ((params->key_offset & 0x7) != 0) {
-		RTE_LOG(ERR, TABLE, "%s: invalid key_offset\n", __func__);
-		return -EINVAL;
-	}
-
 	/* f_hash */
 	if (params->f_hash == NULL) {
 		RTE_LOG(ERR, TABLE,
@@ -123,8 +128,8 @@ rte_table_hash_create_key16_lru(void *params,
 
 	/* Check input parameters */
 	if ((check_params_create_lru(p) != 0) ||
-		((sizeof(struct rte_table_hash) % CACHE_LINE_SIZE) != 0) ||
-		((sizeof(struct rte_bucket_4_16) % CACHE_LINE_SIZE) != 0))
+		((sizeof(struct rte_table_hash) % RTE_CACHE_LINE_SIZE) != 0) ||
+		((sizeof(struct rte_bucket_4_16) % RTE_CACHE_LINE_SIZE) != 0))
 		return NULL;
 	n_entries_per_bucket = 4;
 	key_size = 16;
@@ -133,11 +138,11 @@ rte_table_hash_create_key16_lru(void *params,
 	n_buckets = rte_align32pow2((p->n_entries + n_entries_per_bucket - 1) /
 		n_entries_per_bucket);
 	bucket_size_cl = (sizeof(struct rte_bucket_4_16) + n_entries_per_bucket
-		* entry_size + CACHE_LINE_SIZE - 1) / CACHE_LINE_SIZE;
+		* entry_size + RTE_CACHE_LINE_SIZE - 1) / RTE_CACHE_LINE_SIZE;
 	total_size = sizeof(struct rte_table_hash) + n_buckets *
-		bucket_size_cl * CACHE_LINE_SIZE;
+		bucket_size_cl * RTE_CACHE_LINE_SIZE;
 
-	f = rte_zmalloc_socket("TABLE", total_size, CACHE_LINE_SIZE, socket_id);
+	f = rte_zmalloc_socket("TABLE", total_size, RTE_CACHE_LINE_SIZE, socket_id);
 	if (f == NULL) {
 		RTE_LOG(ERR, TABLE,
 		"%s: Cannot allocate %u bytes for hash table\n",
@@ -153,7 +158,7 @@ rte_table_hash_create_key16_lru(void *params,
 	f->n_entries_per_bucket = n_entries_per_bucket;
 	f->key_size = key_size;
 	f->entry_size = entry_size;
-	f->bucket_size = bucket_size_cl * CACHE_LINE_SIZE;
+	f->bucket_size = bucket_size_cl * RTE_CACHE_LINE_SIZE;
 	f->signature_offset = p->signature_offset;
 	f->key_offset = p->key_offset;
 	f->f_hash = p->f_hash;
@@ -306,18 +311,6 @@ check_params_create_ext(struct rte_table_hash_key16_ext_params *params) {
 		return -EINVAL;
 	}
 
-	/* signature offset */
-	if ((params->signature_offset & 0x3) != 0) {
-		RTE_LOG(ERR, TABLE, "%s: invalid signature offset\n", __func__);
-		return -EINVAL;
-	}
-
-	/* key offset */
-	if ((params->key_offset & 0x7) != 0) {
-		RTE_LOG(ERR, TABLE, "%s: invalid key offset\n", __func__);
-		return -EINVAL;
-	}
-
 	/* f_hash */
 	if (params->f_hash == NULL) {
 		RTE_LOG(ERR, TABLE,
@@ -341,8 +334,8 @@ rte_table_hash_create_key16_ext(void *params,
 
 	/* Check input parameters */
 	if ((check_params_create_ext(p) != 0) ||
-		((sizeof(struct rte_table_hash) % CACHE_LINE_SIZE) != 0) ||
-		((sizeof(struct rte_bucket_4_16) % CACHE_LINE_SIZE) != 0))
+		((sizeof(struct rte_table_hash) % RTE_CACHE_LINE_SIZE) != 0) ||
+		((sizeof(struct rte_bucket_4_16) % RTE_CACHE_LINE_SIZE) != 0))
 		return NULL;
 
 	n_entries_per_bucket = 4;
@@ -354,14 +347,14 @@ rte_table_hash_create_key16_ext(void *params,
 	n_buckets_ext = (p->n_entries_ext + n_entries_per_bucket - 1) /
 		n_entries_per_bucket;
 	bucket_size_cl = (sizeof(struct rte_bucket_4_16) + n_entries_per_bucket
-		* entry_size + CACHE_LINE_SIZE - 1) / CACHE_LINE_SIZE;
-	stack_size_cl = (n_buckets_ext * sizeof(uint32_t) + CACHE_LINE_SIZE - 1)
-		/ CACHE_LINE_SIZE;
+		* entry_size + RTE_CACHE_LINE_SIZE - 1) / RTE_CACHE_LINE_SIZE;
+	stack_size_cl = (n_buckets_ext * sizeof(uint32_t) + RTE_CACHE_LINE_SIZE - 1)
+		/ RTE_CACHE_LINE_SIZE;
 	total_size = sizeof(struct rte_table_hash) +
 		((n_buckets + n_buckets_ext) * bucket_size_cl + stack_size_cl) *
-		CACHE_LINE_SIZE;
+		RTE_CACHE_LINE_SIZE;
 
-	f = rte_zmalloc_socket("TABLE", total_size, CACHE_LINE_SIZE, socket_id);
+	f = rte_zmalloc_socket("TABLE", total_size, RTE_CACHE_LINE_SIZE, socket_id);
 	if (f == NULL) {
 		RTE_LOG(ERR, TABLE,
 			"%s: Cannot allocate %u bytes for hash table\n",
@@ -377,7 +370,7 @@ rte_table_hash_create_key16_ext(void *params,
 	f->n_entries_per_bucket = n_entries_per_bucket;
 	f->key_size = key_size;
 	f->entry_size = entry_size;
-	f->bucket_size = bucket_size_cl * CACHE_LINE_SIZE;
+	f->bucket_size = bucket_size_cl * RTE_CACHE_LINE_SIZE;
 	f->signature_offset = p->signature_offset;
 	f->key_offset = p->key_offset;
 	f->f_hash = p->f_hash;
@@ -534,9 +527,8 @@ rte_table_hash_entry_delete_key16_ext(
 
 					memset(bucket, 0,
 						sizeof(struct rte_bucket_4_16));
-					bucket_index = (bucket -
-						((struct rte_bucket_4_16 *)
-						f->memory)) - f->n_buckets;
+					bucket_index = (((uint8_t *)bucket -
+						(uint8_t *)f->memory)/f->bucket_size) - f->n_buckets;
 					f->stack[f->stack_pos++] = bucket_index;
 				}
 
@@ -608,7 +600,7 @@ rte_table_hash_entry_delete_key16_ext(
 	bucket1 = (struct rte_bucket_4_16 *)			\
 		&f->memory[bucket_index * f->bucket_size];	\
 	rte_prefetch0(bucket1);					\
-	rte_prefetch0((void *)(((uintptr_t) bucket1) + CACHE_LINE_SIZE));\
+	rte_prefetch0((void *)(((uintptr_t) bucket1) + RTE_CACHE_LINE_SIZE));\
 }
 
 #define lookup1_stage2_lru(pkt2_index, mbuf2, bucket2,		\
@@ -684,7 +676,7 @@ rte_table_hash_entry_delete_key16_ext(
 	buckets_mask |= bucket_mask;				\
 	bucket_next = bucket->next;				\
 	rte_prefetch0(bucket_next);				\
-	rte_prefetch0((void *)(((uintptr_t) bucket_next) + CACHE_LINE_SIZE));\
+	rte_prefetch0((void *)(((uintptr_t) bucket_next) + RTE_CACHE_LINE_SIZE));\
 	buckets[pkt_index] = bucket_next;			\
 	keys[pkt_index] = key;					\
 }
@@ -741,14 +733,14 @@ rte_table_hash_entry_delete_key16_ext(
 	bucket10 = (struct rte_bucket_4_16 *)			\
 		&f->memory[bucket10_index * f->bucket_size];	\
 	rte_prefetch0(bucket10);				\
-	rte_prefetch0((void *)(((uintptr_t) bucket10) + CACHE_LINE_SIZE));\
+	rte_prefetch0((void *)(((uintptr_t) bucket10) + RTE_CACHE_LINE_SIZE));\
 								\
 	signature11 = RTE_MBUF_METADATA_UINT32(mbuf11, f->signature_offset);\
 	bucket11_index = signature11 & (f->n_buckets - 1);	\
 	bucket11 = (struct rte_bucket_4_16 *)			\
 		&f->memory[bucket11_index * f->bucket_size];	\
 	rte_prefetch0(bucket11);				\
-	rte_prefetch0((void *)(((uintptr_t) bucket11) + CACHE_LINE_SIZE));\
+	rte_prefetch0((void *)(((uintptr_t) bucket11) + RTE_CACHE_LINE_SIZE));\
 }
 
 #define lookup2_stage2_lru(pkt20_index, pkt21_index, mbuf20, mbuf21,\
@@ -831,6 +823,9 @@ rte_table_hash_lookup_key16_lru(
 	uint32_t pkt11_index, pkt20_index, pkt21_index;
 	uint64_t pkts_mask_out = 0;
 
+	__rte_unused uint32_t n_pkts_in = __builtin_popcountll(pkts_mask);
+	RTE_TABLE_HASH_KEY16_STATS_PKTS_IN_ADD(f, n_pkts_in);
+
 	/* Cannot run the pipeline with less than 5 packets */
 	if (__builtin_popcountll(pkts_mask) < 5) {
 		for ( ; pkts_mask; ) {
@@ -845,6 +840,7 @@ rte_table_hash_lookup_key16_lru(
 		}
 
 		*lookup_hit_mask = pkts_mask_out;
+		RTE_TABLE_HASH_KEY16_STATS_PKTS_LOOKUP_MISS(f, n_pkts_in - __builtin_popcountll(pkts_mask_out));
 		return 0;
 	}
 
@@ -934,6 +930,7 @@ rte_table_hash_lookup_key16_lru(
 		bucket20, bucket21, pkts_mask_out, entries, f);
 
 	*lookup_hit_mask = pkts_mask_out;
+	RTE_TABLE_HASH_KEY16_STATS_PKTS_LOOKUP_MISS(f, n_pkts_in - __builtin_popcountll(pkts_mask_out));
 	return 0;
 } /* rte_table_hash_lookup_key16_lru() */
 
@@ -954,6 +951,9 @@ rte_table_hash_lookup_key16_ext(
 	struct rte_bucket_4_16 *buckets[RTE_PORT_IN_BURST_SIZE_MAX];
 	uint64_t *keys[RTE_PORT_IN_BURST_SIZE_MAX];
 
+	__rte_unused uint32_t n_pkts_in = __builtin_popcountll(pkts_mask);
+	RTE_TABLE_HASH_KEY16_STATS_PKTS_IN_ADD(f, n_pkts_in);
+
 	/* Cannot run the pipeline with less than 5 packets */
 	if (__builtin_popcountll(pkts_mask) < 5) {
 		for ( ; pkts_mask; ) {
@@ -968,8 +968,7 @@ rte_table_hash_lookup_key16_ext(
 				buckets, keys, f);
 		}
 
-		*lookup_hit_mask = pkts_mask_out;
-		return 0;
+		goto grind_next_buckets;
 	}
 
 	/*
@@ -1060,6 +1059,7 @@ rte_table_hash_lookup_key16_ext(
 		bucket20, bucket21, pkts_mask_out, entries,
 		buckets_mask, buckets, keys, f);
 
+grind_next_buckets:
 	/* Grind next buckets */
 	for ( ; buckets_mask; ) {
 		uint64_t buckets_mask_next = 0;
@@ -1080,8 +1080,23 @@ rte_table_hash_lookup_key16_ext(
 	}
 
 	*lookup_hit_mask = pkts_mask_out;
+	RTE_TABLE_HASH_KEY16_STATS_PKTS_LOOKUP_MISS(f, n_pkts_in - __builtin_popcountll(pkts_mask_out));
 	return 0;
 } /* rte_table_hash_lookup_key16_ext() */
+
+static int
+rte_table_hash_key16_stats_read(void *table, struct rte_table_stats *stats, int clear)
+{
+	struct rte_table_hash *t = (struct rte_table_hash *) table;
+
+	if (stats != NULL)
+		memcpy(stats, &t->stats, sizeof(t->stats));
+
+	if (clear)
+		memset(&t->stats, 0, sizeof(t->stats));
+
+	return 0;
+}
 
 struct rte_table_ops rte_table_hash_key16_lru_ops = {
 	.f_create = rte_table_hash_create_key16_lru,
@@ -1089,6 +1104,7 @@ struct rte_table_ops rte_table_hash_key16_lru_ops = {
 	.f_add = rte_table_hash_entry_add_key16_lru,
 	.f_delete = rte_table_hash_entry_delete_key16_lru,
 	.f_lookup = rte_table_hash_lookup_key16_lru,
+	.f_stats = rte_table_hash_key16_stats_read,
 };
 
 struct rte_table_ops rte_table_hash_key16_ext_ops = {
@@ -1097,4 +1113,5 @@ struct rte_table_ops rte_table_hash_key16_ext_ops = {
 	.f_add = rte_table_hash_entry_add_key16_ext,
 	.f_delete = rte_table_hash_entry_delete_key16_ext,
 	.f_lookup = rte_table_hash_lookup_key16_ext,
+	.f_stats = rte_table_hash_key16_stats_read,
 };

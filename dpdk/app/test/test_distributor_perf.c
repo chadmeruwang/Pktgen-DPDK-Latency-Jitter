@@ -33,10 +33,12 @@
 
 #include "test.h"
 
-#ifdef RTE_LIBRTE_DISTRIBUTOR
 #include <unistd.h>
 #include <string.h>
+#include <rte_mempool.h>
 #include <rte_cycles.h>
+#include <rte_common.h>
+#include <rte_mbuf.h>
 #include <rte_distributor.h>
 
 #define ITER_POWER 20 /* log 2 of how many iterations we do when timing. */
@@ -74,7 +76,7 @@ static void
 time_cache_line_switch(void)
 {
 	/* allocate a full cache line for data, we use only first byte of it */
-	uint64_t data[CACHE_LINE_SIZE*3 / sizeof(uint64_t)];
+	uint64_t data[RTE_CACHE_LINE_SIZE*3 / sizeof(uint64_t)];
 
 	unsigned i, slaveid = rte_get_next_lcore(rte_lcore_id(), 0, 0);
 	volatile uint64_t *pdata = &data[0];
@@ -160,7 +162,7 @@ perf_test(struct rte_distributor *d, struct rte_mempool *p)
 	}
 	/* ensure we have different hash value for each pkt */
 	for (i = 0; i < BURST; i++)
-		bufs[i]->pkt.hash.rss = i;
+		bufs[i]->hash.usr = i;
 
 	start = rte_rdtsc();
 	for (i = 0; i < (1<<ITER_POWER); i++)
@@ -199,7 +201,7 @@ quit_workers(struct rte_distributor *d, struct rte_mempool *p)
 
 	quit = 1;
 	for (i = 0; i < num_workers; i++)
-		bufs[i]->pkt.hash.rss = i << 1;
+		bufs[i]->hash.usr = i << 1;
 	rte_distributor_process(d, bufs, num_workers);
 
 	rte_mempool_put_bulk(p, (void *)bufs, num_workers);
@@ -210,9 +212,7 @@ quit_workers(struct rte_distributor *d, struct rte_mempool *p)
 	worker_idx = 0;
 }
 
-#define MBUF_SIZE (2048 + sizeof(struct rte_mbuf) + RTE_PKTMBUF_HEADROOM)
-
-int
+static int
 test_distributor_perf(void)
 {
 	static struct rte_distributor *d;
@@ -241,12 +241,8 @@ test_distributor_perf(void)
 	const unsigned nb_bufs = (511 * rte_lcore_count()) < BIG_BATCH ?
 			(BIG_BATCH * 2) - 1 : (511 * rte_lcore_count());
 	if (p == NULL) {
-		p = rte_mempool_create("DPT_MBUF_POOL", nb_bufs,
-				MBUF_SIZE, BURST,
-				sizeof(struct rte_pktmbuf_pool_private),
-				rte_pktmbuf_pool_init, NULL,
-				rte_pktmbuf_init, NULL,
-				rte_socket_id(), 0);
+		p = rte_pktmbuf_pool_create("DPT_MBUF_POOL", nb_bufs, BURST,
+			0, RTE_MBUF_DEFAULT_BUF_SIZE, rte_socket_id());
 		if (p == NULL) {
 			printf("Error creating mempool\n");
 			return -1;
@@ -261,15 +257,8 @@ test_distributor_perf(void)
 	return 0;
 }
 
-#else
-
-#include <stdio.h>
-
-int
-test_distributor_perf(void)
-{
-	printf("Distributor is not enabled in configuration\n");
-	return 0;
-}
-
-#endif
+static struct test_command distributor_perf_cmd = {
+	.command = "distributor_perf_autotest",
+	.callback = test_distributor_perf,
+};
+REGISTER_TEST_COMMAND(distributor_perf_cmd);

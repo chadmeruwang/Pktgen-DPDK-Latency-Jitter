@@ -53,7 +53,6 @@
 #include <rte_malloc.h>
 #include <rte_common.h>
 #include <rte_ivshmem.h>
-#include <rte_tailq_elem.h>
 
 #include "eal_internal_cfg.h"
 #include "eal_private.h"
@@ -62,7 +61,6 @@
 #define PCI_DEVICE_ID_IVSHMEM 0x1110
 
 #define IVSHMEM_MAGIC 0x0BADC0DE
-#define IVSHMEM_METADATA_SIZE 0x1000
 
 #define IVSHMEM_RESOURCE_PATH "/sys/bus/pci/devices/%04x:%02x:%02x.%x/resource2"
 #define IVSHMEM_CONFIG_PATH "/var/run/.%s_ivshmem_config"
@@ -727,15 +725,6 @@ map_all_segments(void)
 		 * expect memsegs to be empty */
 		memcpy(&mcfg->memseg[i], &ms,
 				sizeof(struct rte_memseg));
-		memcpy(&mcfg->free_memseg[i], &ms,
-				sizeof(struct rte_memseg));
-
-
-		/* adjust the free_memseg so that there's no free space left */
-		mcfg->free_memseg[i].ioremap_addr += mcfg->free_memseg[i].len;
-		mcfg->free_memseg[i].phys_addr += mcfg->free_memseg[i].len;
-		mcfg->free_memseg[i].addr_64 += mcfg->free_memseg[i].len;
-		mcfg->free_memseg[i].len = 0;
 
 		close(fd);
 
@@ -765,8 +754,8 @@ rte_eal_ivshmem_obj_init(void)
 		return 0;
 
 	/* check that we have an initialised ring tail queue */
-	if ((ring_list =
-	     RTE_TAILQ_LOOKUP_BY_IDX(RTE_TAILQ_RING, rte_ring_list)) == NULL) {
+	ring_list = RTE_TAILQ_LOOKUP(RTE_TAILQ_RING_NAME, rte_ring_list);
+	if (ring_list == NULL) {
 		RTE_LOG(ERR, EAL, "No rte_ring tailq found!\n");
 		return -1;
 	}
@@ -779,12 +768,12 @@ rte_eal_ivshmem_obj_init(void)
 		seg = &ivshmem_config->segment[i];
 
 		/* add memzone */
-		if (mcfg->memzone_idx == RTE_MAX_MEMZONE) {
+		if (mcfg->memzone_cnt == RTE_MAX_MEMZONE) {
 			RTE_LOG(ERR, EAL, "No more memory zones available!\n");
 			return -1;
 		}
 
-		idx = mcfg->memzone_idx;
+		idx = mcfg->memzone_cnt;
 
 		RTE_LOG(DEBUG, EAL, "Found memzone: '%s' at %p (len 0x%" PRIx64 ")\n",
 				seg->entry.mz.name, seg->entry.mz.addr, seg->entry.mz.len);
@@ -807,13 +796,13 @@ rte_eal_ivshmem_obj_init(void)
 			}
 		}
 
-		mcfg->memzone_idx++;
+		mcfg->memzone_cnt++;
 	}
 
 	rte_rwlock_write_lock(RTE_EAL_TAILQ_RWLOCK);
 
 	/* find rings */
-	for (i = 0; i < mcfg->memzone_idx; i++) {
+	for (i = 0; i < mcfg->memzone_cnt; i++) {
 		mz = &mcfg->memzone[i];
 
 		/* check if memzone has a ring prefix */

@@ -40,12 +40,12 @@
 
 #include <rte_memory.h>
 #include <rte_memzone.h>
-#include <rte_tailq.h>
 #include <rte_eal.h>
 #include <rte_eal_memconfig.h>
 #include <rte_log.h>
 
 #include "eal_private.h"
+#include "eal_internal_cfg.h"
 
 /*
  * Return a pointer to a read-only table of struct rte_physmem_desc
@@ -70,7 +70,7 @@ rte_eal_get_physmem_size(void)
 	/* get pointer to global configuration */
 	mcfg = rte_eal_get_configuration()->mem_config;
 
-	for (i=0; i<RTE_MAX_MEMSEG; i++) {
+	for (i = 0; i < RTE_MAX_MEMSEG; i++) {
 		if (mcfg->memseg[i].addr == NULL)
 			break;
 
@@ -90,13 +90,13 @@ rte_dump_physmem_layout(FILE *f)
 	/* get pointer to global configuration */
 	mcfg = rte_eal_get_configuration()->mem_config;
 
-	for (i=0; i<RTE_MAX_MEMSEG; i++) {
+	for (i = 0; i < RTE_MAX_MEMSEG; i++) {
 		if (mcfg->memseg[i].addr == NULL)
 			break;
 
 		fprintf(f, "Segment %u: phys:0x%"PRIx64", len:%zu, "
 		       "virt:%p, socket_id:%"PRId32", "
-		       "hugepage_sz:%zu, nchannel:%"PRIx32", "
+		       "hugepage_sz:%"PRIu64", nchannel:%"PRIx32", "
 		       "nrank:%"PRIx32"\n", i,
 		       mcfg->memseg[i].phys_addr,
 		       mcfg->memseg[i].len,
@@ -118,4 +118,37 @@ unsigned rte_memory_get_nchannel(void)
 unsigned rte_memory_get_nrank(void)
 {
 	return rte_eal_get_configuration()->mem_config->nrank;
+}
+
+static int
+rte_eal_memdevice_init(void)
+{
+	struct rte_config *config;
+
+	if (rte_eal_process_type() == RTE_PROC_SECONDARY)
+		return 0;
+
+	config = rte_eal_get_configuration();
+	config->mem_config->nchannel = internal_config.force_nchannel;
+	config->mem_config->nrank = internal_config.force_nrank;
+
+	return 0;
+}
+
+/* init memory subsystem */
+int
+rte_eal_memory_init(void)
+{
+	RTE_LOG(INFO, EAL, "Setting up physically contiguous memory...\n");
+
+	const int retval = rte_eal_process_type() == RTE_PROC_PRIMARY ?
+			rte_eal_hugepage_init() :
+			rte_eal_hugepage_attach();
+	if (retval < 0)
+		return -1;
+
+	if (internal_config.no_shconf == 0 && rte_eal_memdevice_init() < 0)
+		return -1;
+
+	return 0;
 }

@@ -28,21 +28,21 @@
 #   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 #   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 include $(RTE_SDK)/mk/rte.vars.mk
 
 # library name
 LIB = librte_malloc.a
 
+LIBABIVER := 1
+
 CFLAGS += $(WERROR_FLAGS) -I$(SRCDIR) -O3
 
-# all source are stored in SRCS-y
-SRCS-$(CONFIG_RTE_LIBRTE_MALLOC) := rte_malloc.c malloc_elem.c malloc_heap.c
+EXPORT_MAP := rte_malloc_version.map
 
-# install includes
-SYMLINK-$(CONFIG_RTE_LIBRTE_MALLOC)-include := rte_malloc.h
+# all source are stored in SRCS-y
+SRCS-$(CONFIG_RTE_LIBRTE_EAL) := rte_malloc_empty.c
 
 # this lib needs eal
-DEPDIRS-$(CONFIG_RTE_LIBRTE_MALLOC) += lib/librte_eal
+DEPDIRS-$(CONFIG_RTE_LIBRTE_EAL) += lib/librte_eal
 
 include $(RTE_SDK)/mk/rte.lib.mk

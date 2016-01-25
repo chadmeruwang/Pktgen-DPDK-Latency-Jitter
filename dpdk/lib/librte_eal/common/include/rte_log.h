@@ -77,6 +77,7 @@ extern struct rte_logs rte_logs;
 #define RTE_LOGTYPE_PORT    0x00002000 /**< Log related to port. */
 #define RTE_LOGTYPE_TABLE   0x00004000 /**< Log related to table. */
 #define RTE_LOGTYPE_PIPELINE 0x00008000 /**< Log related to pipeline. */
+#define RTE_LOGTYPE_MBUF    0x00010000 /**< Log related to mbuf. */
 
 /* these log types can be used in an application */
 #define RTE_LOGTYPE_USER1   0x01000000 /**< User-defined log type 1. */
@@ -106,8 +107,7 @@ extern FILE *eal_default_log_stream;
  *
  * This can be done at any time. The f argument represents the stream
  * to be used to send the logs. If f is NULL, the default output is
- * used, which is the serial line in case of bare metal, or directly
- * sent to syslog in case of linux application.
+ * used (stderr).
  *
  * @param f
  *   Pointer to the stream.
@@ -130,6 +130,11 @@ int rte_openlog_stream(FILE *f);
 void rte_set_log_level(uint32_t level);
 
 /**
+ * Get the global log level.
+ */
+uint32_t rte_get_log_level(void);
+
+/**
  * Enable or disable the log type.
  *
  * @param type
@@ -138,6 +143,11 @@ void rte_set_log_level(uint32_t level);
  *   True for enable; false for disable.
  */
 void rte_set_log_type(uint32_t type, int enable);
+
+/**
+ * Get the global log type.
+ */
+uint32_t rte_get_log_type(void);
 
 /**
  * Get the current loglevel for the message being processed.
@@ -280,19 +290,15 @@ int rte_vlog(uint32_t level, uint32_t logtype, const char *format, va_list ap)
  * @param t
  *   The log type, for example, EAL. The short name is expanded by the
  *   macro, so it cannot be an integer value.
- * @param fmt
+ * @param ...
  *   The fmt string, as in printf(3), followed by the variable arguments
  *   required by the format.
- * @param args
- *   The variable list of arguments according to the format string.
  * @return
  *   - 0: Success.
  *   - Negative on error.
  */
 #define RTE_LOG(l, t, ...)					\
-	(void)(((RTE_LOG_ ## l <= RTE_LOG_LEVEL) &&			\
-	  (RTE_LOG_ ## l <= rte_logs.level) &&			\
-	  (RTE_LOGTYPE_ ## t & rte_logs.type)) ?		\
+	(void)((RTE_LOG_ ## l <= RTE_LOG_LEVEL) ?		\
 	 rte_log(RTE_LOG_ ## l,					\
 		 RTE_LOGTYPE_ ## t, # t ": " __VA_ARGS__) :	\
 	 0)

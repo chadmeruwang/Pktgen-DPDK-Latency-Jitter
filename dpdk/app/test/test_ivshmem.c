@@ -43,8 +43,6 @@
 
 #include "test.h"
 
-#ifdef RTE_LIBRTE_IVSHMEM
-
 #include <rte_common.h>
 #include <rte_ivshmem.h>
 #include <rte_string_fns.h>
@@ -138,13 +136,13 @@ test_ivshmem_create_lots_of_memzones(void)
 	for (i = 0; i < RTE_LIBRTE_IVSHMEM_MAX_ENTRIES; i++) {
 		snprintf(name, sizeof(name), "mz_%i", i);
 
-		mz = rte_memzone_reserve(name, CACHE_LINE_SIZE, SOCKET_ID_ANY, 0);
+		mz = rte_memzone_reserve(name, RTE_CACHE_LINE_SIZE, SOCKET_ID_ANY, 0);
 		ASSERT(mz != NULL, "Failed to reserve memzone");
 
 		ASSERT(rte_ivshmem_metadata_add_memzone(mz, METADATA_NAME) == 0,
 				"Failed to add memzone");
 	}
-	mz = rte_memzone_reserve("one too many", CACHE_LINE_SIZE, SOCKET_ID_ANY, 0);
+	mz = rte_memzone_reserve("one too many", RTE_CACHE_LINE_SIZE, SOCKET_ID_ANY, 0);
 	ASSERT(mz != NULL, "Failed to reserve memzone");
 
 	ASSERT(rte_ivshmem_metadata_add_memzone(mz, METADATA_NAME) < 0,
@@ -161,7 +159,7 @@ test_ivshmem_create_duplicate_memzone(void)
 	ASSERT(rte_ivshmem_metadata_create(METADATA_NAME) == 0,
 			"Failed to create metadata");
 
-	mz = rte_memzone_reserve("mz", CACHE_LINE_SIZE, SOCKET_ID_ANY, 0);
+	mz = rte_memzone_reserve("mz", RTE_CACHE_LINE_SIZE, SOCKET_ID_ANY, 0);
 	ASSERT(mz != NULL, "Failed to reserve memzone");
 
 	ASSERT(rte_ivshmem_metadata_add_memzone(mz, METADATA_NAME) == 0,
@@ -431,12 +429,9 @@ test_ivshmem(void)
 
 	return -1;
 }
-#else /* RTE_LIBRTE_IVSHMEM */
 
-int
-test_ivshmem(void)
-{
-	printf("This binary was not compiled with IVSHMEM support!\n");
-	return 0;
-}
-#endif /* RTE_LIBRTE_IVSHMEM */
+static struct test_command ivshmem_cmd = {
+	.command = "ivshmem_autotest",
+	.callback = test_ivshmem,
+};
+REGISTER_TEST_COMMAND(ivshmem_cmd);

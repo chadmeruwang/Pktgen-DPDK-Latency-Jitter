@@ -40,7 +40,6 @@
 #include <rte_memory.h>
 #include <rte_memzone.h>
 #include <rte_launch.h>
-#include <rte_tailq.h>
 #include <rte_eal.h>
 #include <rte_per_lcore.h>
 #include <rte_lcore.h>
@@ -59,7 +58,7 @@
  * - Send logs with different types and levels, some should not be displayed.
  */
 
-int
+static int
 test_logs(void)
 {
 	/* enable these logs type */
@@ -90,3 +89,9 @@ test_logs(void)
 
 	return 0;
 }
+
+static struct test_command logs_cmd = {
+	.command = "logs_autotest",
+	.callback = test_logs,
+};
+REGISTER_TEST_COMMAND(logs_cmd);

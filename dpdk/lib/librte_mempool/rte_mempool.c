@@ -48,7 +48,6 @@
 #include <rte_malloc.h>
 #include <rte_atomic.h>
 #include <rte_launch.h>
-#include <rte_tailq.h>
 #include <rte_eal.h>
 #include <rte_eal_memconfig.h>
 #include <rte_per_lcore.h>
@@ -63,7 +62,14 @@
 
 TAILQ_HEAD(rte_mempool_list, rte_tailq_entry);
 
+static struct rte_tailq_elem rte_mempool_tailq = {
+	.name = "RTE_MEMPOOL",
+};
+EAL_REGISTER_TAILQ(rte_mempool_tailq)
+
 #define CACHE_FLUSHTHRESH_MULTIPLIER 1.5
+#define CALC_CACHE_FLUSHTHRESH(c)	\
+	((typeof(c))((c) * CACHE_FLUSHTHRESH_MULTIPLIER))
 
 /*
  * return the greatest common divisor between a and b (fast algorithm)
@@ -114,27 +120,29 @@ static unsigned optimize_object_size(unsigned obj_size)
 		nrank = 1;
 
 	/* process new object size */
-	new_obj_size = (obj_size + CACHE_LINE_MASK) / CACHE_LINE_SIZE;
+	new_obj_size = (obj_size + RTE_MEMPOOL_ALIGN_MASK) / RTE_MEMPOOL_ALIGN;
 	while (get_gcd(new_obj_size, nrank * nchan) != 1)
 		new_obj_size++;
-	return new_obj_size * CACHE_LINE_SIZE;
+	return new_obj_size * RTE_MEMPOOL_ALIGN;
 }
 
 static void
 mempool_add_elem(struct rte_mempool *mp, void *obj, uint32_t obj_idx,
 	rte_mempool_obj_ctor_t *obj_init, void *obj_init_arg)
 {
-	struct rte_mempool **mpp;
+	struct rte_mempool_objhdr *hdr;
+	struct rte_mempool_objtlr *tlr __rte_unused;
 
 	obj = (char *)obj + mp->header_size;
 
 	/* set mempool ptr in header */
-	mpp = __mempool_from_obj(obj);
-	*mpp = mp;
+	hdr = RTE_PTR_SUB(obj, sizeof(*hdr));
+	hdr->mp = mp;
 
 #ifdef RTE_LIBRTE_MEMPOOL_DEBUG
-	__mempool_write_header_cookie(obj, 1);
-	__mempool_write_trailer_cookie(obj);
+	hdr->cookie = RTE_MEMPOOL_HEADER_COOKIE2;
+	tlr = __mempool_get_trailer(obj);
+	tlr->cookie = RTE_MEMPOOL_TRAILER_COOKIE;
 #endif
 	/* call the initializer */
 	if (obj_init)
@@ -150,7 +158,7 @@ rte_mempool_obj_iter(void *vaddr, uint32_t elt_num, size_t elt_sz, size_t align,
 	rte_mempool_obj_iter_t obj_iter, void *obj_iter_arg)
 {
 	uint32_t i, j, k;
-	uint32_t pgn;
+	uint32_t pgn, pgf;
 	uintptr_t end, start, va;
 	uintptr_t pg_sz;
 
@@ -165,10 +173,14 @@ rte_mempool_obj_iter(void *vaddr, uint32_t elt_num, size_t elt_sz, size_t align,
 		start = RTE_ALIGN_CEIL(va, align);
 		end = start + elt_sz;
 
-		pgn = (end >> pg_shift) - (start >> pg_shift);
+		/* index of the first page for the next element. */
+		pgf = (end >> pg_shift) - (start >> pg_shift);
+
+		/* index of the last page for the current element. */
+		pgn = ((end - 1) >> pg_shift) - (start >> pg_shift);
 		pgn += j;
 
-		/* do we have enough space left for the next element. */
+		/* do we have enough space left for the element. */
 		if (pgn >= pg_num)
 			break;
 
@@ -188,7 +200,7 @@ rte_mempool_obj_iter(void *vaddr, uint32_t elt_num, size_t elt_sz, size_t align,
 				obj_iter(obj_iter_arg, (void *)start,
 					(void *)end, i);
 			va = end;
-			j = pgn;
+			j += pgf;
 			i++;
 		} else {
 			va = RTE_ALIGN_CEIL((va + 1), pg_sz);
@@ -196,7 +208,7 @@ rte_mempool_obj_iter(void *vaddr, uint32_t elt_num, size_t elt_sz, size_t align,
 		}
 	}
 
-	return (i);
+	return i;
 }
 
 /*
@@ -255,7 +267,7 @@ rte_mempool_calc_obj_size(uint32_t elt_size, uint32_t flags,
 #endif
 	if ((flags & MEMPOOL_F_NO_CACHE_ALIGN) == 0)
 		sz->header_size = RTE_ALIGN_CEIL(sz->header_size,
-			CACHE_LINE_SIZE);
+			RTE_MEMPOOL_ALIGN);
 
 	/* trailer contains the cookie in debug mode */
 	sz->trailer_size = 0;
@@ -269,9 +281,9 @@ rte_mempool_calc_obj_size(uint32_t elt_size, uint32_t flags,
 	if ((flags & MEMPOOL_F_NO_CACHE_ALIGN) == 0) {
 		sz->total_size = sz->header_size + sz->elt_size +
 			sz->trailer_size;
-		sz->trailer_size += ((CACHE_LINE_SIZE -
-				  (sz->total_size & CACHE_LINE_MASK)) &
-				 CACHE_LINE_MASK);
+		sz->trailer_size += ((RTE_MEMPOOL_ALIGN -
+				  (sz->total_size & RTE_MEMPOOL_ALIGN_MASK)) &
+				 RTE_MEMPOOL_ALIGN_MASK);
 	}
 
 	/*
@@ -305,7 +317,7 @@ rte_mempool_calc_obj_size(uint32_t elt_size, uint32_t flags,
 	/* this is the size of an object, including header and trailer */
 	sz->total_size = sz->header_size + sz->elt_size + sz->trailer_size;
 
-	return (sz->total_size);
+	return sz->total_size;
 }
 
 
@@ -326,7 +338,7 @@ rte_mempool_xmem_size(uint32_t elt_num, size_t elt_sz, uint32_t pg_shift)
 		sz = RTE_ALIGN_CEIL(elt_sz, pg_sz) * elt_num;
 	}
 
-	return (sz);
+	return sz;
 }
 
 /*
@@ -335,9 +347,9 @@ rte_mempool_xmem_size(uint32_t elt_num, size_t elt_sz, uint32_t pg_shift)
  */
 static void
 mempool_lelem_iter(void *arg, __rte_unused void *start, void *end,
-        __rte_unused uint32_t idx)
+	__rte_unused uint32_t idx)
 {
-        *(uintptr_t *)arg = (uintptr_t)end;
+	*(uintptr_t *)arg = (uintptr_t)end;
 }
 
 ssize_t
@@ -355,12 +367,12 @@ rte_mempool_xmem_usage(void *vaddr, uint32_t elt_num, size_t elt_sz,
 	if ((n = rte_mempool_obj_iter(vaddr, elt_num, elt_sz, 1,
 			paddr, pg_num, pg_shift, mempool_lelem_iter,
 			&uv)) != elt_num) {
-		return (-n);
+		return -(ssize_t)n;
 	}
 
 	uv = RTE_ALIGN_CEIL(uv, pg_sz);
 	usz = uv - va;
-	return (usz);
+	return usz;
 }
 
 /* create the mempool */
@@ -372,18 +384,18 @@ rte_mempool_create(const char *name, unsigned n, unsigned elt_size,
 		   int socket_id, unsigned flags)
 {
 #ifdef RTE_LIBRTE_XEN_DOM0
-	return (rte_dom0_mempool_create(name, n, elt_size,
+	return rte_dom0_mempool_create(name, n, elt_size,
 		cache_size, private_data_size,
 		mp_init, mp_init_arg,
 		obj_init, obj_init_arg,
-		socket_id, flags));
+		socket_id, flags);
 #else
-	return (rte_mempool_xmem_create(name, n, elt_size,
+	return rte_mempool_xmem_create(name, n, elt_size,
 		cache_size, private_data_size,
 		mp_init, mp_init_arg,
 		obj_init, obj_init_arg,
 		socket_id, flags,
-		NULL, NULL, MEMPOOL_PG_NUM_DEFAULT, MEMPOOL_PG_SHIFT_MAX));
+		NULL, NULL, MEMPOOL_PG_NUM_DEFAULT, MEMPOOL_PG_SHIFT_MAX);
 #endif
 }
 
@@ -404,6 +416,7 @@ rte_mempool_xmem_create(const char *name, unsigned n, unsigned elt_size,
 {
 	char mz_name[RTE_MEMZONE_NAMESIZE];
 	char rg_name[RTE_RING_NAMESIZE];
+	struct rte_mempool_list *mempool_list;
 	struct rte_mempool *mp = NULL;
 	struct rte_tailq_entry *te;
 	struct rte_ring *r;
@@ -418,29 +431,25 @@ rte_mempool_xmem_create(const char *name, unsigned n, unsigned elt_size,
 
 	/* compilation-time checks */
 	RTE_BUILD_BUG_ON((sizeof(struct rte_mempool) &
-			  CACHE_LINE_MASK) != 0);
+			  RTE_CACHE_LINE_MASK) != 0);
 #if RTE_MEMPOOL_CACHE_MAX_SIZE > 0
 	RTE_BUILD_BUG_ON((sizeof(struct rte_mempool_cache) &
-			  CACHE_LINE_MASK) != 0);
+			  RTE_CACHE_LINE_MASK) != 0);
 	RTE_BUILD_BUG_ON((offsetof(struct rte_mempool, local_cache) &
-			  CACHE_LINE_MASK) != 0);
+			  RTE_CACHE_LINE_MASK) != 0);
 #endif
 #ifdef RTE_LIBRTE_MEMPOOL_DEBUG
 	RTE_BUILD_BUG_ON((sizeof(struct rte_mempool_debug_stats) &
-			  CACHE_LINE_MASK) != 0);
+			  RTE_CACHE_LINE_MASK) != 0);
 	RTE_BUILD_BUG_ON((offsetof(struct rte_mempool, stats) &
-			  CACHE_LINE_MASK) != 0);
+			  RTE_CACHE_LINE_MASK) != 0);
 #endif
 
-	/* check that we have an initialised tail queue */
-	if (RTE_TAILQ_LOOKUP_BY_IDX(RTE_TAILQ_MEMPOOL,
-			rte_mempool_list) == NULL) {
-		rte_errno = E_RTE_NO_TAILQ;
-		return NULL;
-	}
+	mempool_list = RTE_TAILQ_CAST(rte_mempool_tailq.head, rte_mempool_list);
 
 	/* asked cache too big */
-	if (cache_size > RTE_MEMPOOL_CACHE_MAX_SIZE) {
+	if (cache_size > RTE_MEMPOOL_CACHE_MAX_SIZE ||
+	    CALC_CACHE_FLUSHTHRESH(cache_size) > n) {
 		rte_errno = EINVAL;
 		return NULL;
 	}
@@ -489,7 +498,7 @@ rte_mempool_xmem_create(const char *name, unsigned n, unsigned elt_size,
 	 * cache-aligned
 	 */
 	private_data_size = (private_data_size +
-			     CACHE_LINE_MASK) & (~CACHE_LINE_MASK);
+			     RTE_MEMPOOL_ALIGN_MASK) & (~RTE_MEMPOOL_ALIGN_MASK);
 
 	if (! rte_eal_has_hugepages()) {
 		/*
@@ -512,10 +521,11 @@ rte_mempool_xmem_create(const char *name, unsigned n, unsigned elt_size,
 
 	/*
 	 * If user provided an external memory buffer, then use it to
-	 * store mempool objects. Otherwise reserve memzone big enough to
-	 * hold mempool header and metadata plus mempool objects.
+	 * store mempool objects. Otherwise reserve a memzone that is large
+	 * enough to hold mempool header and metadata plus mempool objects.
 	 */
 	mempool_size = MEMPOOL_HEADER_SIZE(mp, pg_num) + private_data_size;
+	mempool_size = RTE_ALIGN_CEIL(mempool_size, RTE_MEMPOOL_ALIGN);
 	if (vaddr == NULL)
 		mempool_size += (size_t)objsz.total_size * n;
 
@@ -534,7 +544,7 @@ rte_mempool_xmem_create(const char *name, unsigned n, unsigned elt_size,
 
 	/*
 	 * no more memory: in this case we loose previously reserved
-	 * space for the as we cannot free it
+	 * space for the ring as we cannot free it
 	 */
 	if (mz == NULL) {
 		rte_free(te);
@@ -565,13 +575,13 @@ rte_mempool_xmem_create(const char *name, unsigned n, unsigned elt_size,
 	mp->header_size = objsz.header_size;
 	mp->trailer_size = objsz.trailer_size;
 	mp->cache_size = cache_size;
-	mp->cache_flushthresh = (uint32_t)
-		(cache_size * CACHE_FLUSHTHRESH_MULTIPLIER);
+	mp->cache_flushthresh = CALC_CACHE_FLUSHTHRESH(cache_size);
 	mp->private_data_size = private_data_size;
 
 	/* calculate address of the first element for continuous mempool. */
 	obj = (char *)mp + MEMPOOL_HEADER_SIZE(mp, pg_num) +
 		private_data_size;
+	obj = RTE_PTR_ALIGN_CEIL(obj, RTE_MEMPOOL_ALIGN);
 
 	/* populate address translation fields. */
 	mp->pg_num = pg_num;
@@ -600,7 +610,9 @@ rte_mempool_xmem_create(const char *name, unsigned n, unsigned elt_size,
 
 	te->data = (void *) mp;
 
-	RTE_EAL_TAILQ_INSERT_TAIL(RTE_TAILQ_MEMPOOL, rte_mempool_list, te);
+	rte_rwlock_write_lock(RTE_EAL_TAILQ_RWLOCK);
+	TAILQ_INSERT_TAIL(mempool_list, te, next);
+	rte_rwlock_write_unlock(RTE_EAL_TAILQ_RWLOCK);
 
 exit:
 	rte_rwlock_write_unlock(RTE_EAL_MEMPOOL_RWLOCK);
@@ -765,6 +777,9 @@ rte_mempool_dump(FILE *f, const struct rte_mempool *mp)
 	unsigned common_count;
 	unsigned cache_count;
 
+	RTE_VERIFY(f != NULL);
+	RTE_VERIFY(mp != NULL);
+
 	fprintf(f, "mempool <%s>@%p\n", mp->name, mp);
 	fprintf(f, "  flags=%x\n", mp->flags);
 	fprintf(f, "  ring=<%s>@%p\n", mp->ring->name, mp->ring);
@@ -828,11 +843,7 @@ rte_mempool_list_dump(FILE *f)
 	struct rte_tailq_entry *te;
 	struct rte_mempool_list *mempool_list;
 
-	if ((mempool_list =
-	     RTE_TAILQ_LOOKUP_BY_IDX(RTE_TAILQ_MEMPOOL, rte_mempool_list)) == NULL) {
-		rte_errno = E_RTE_NO_TAILQ;
-		return;
-	}
+	mempool_list = RTE_TAILQ_CAST(rte_mempool_tailq.head, rte_mempool_list);
 
 	rte_rwlock_read_lock(RTE_EAL_MEMPOOL_RWLOCK);
 
@@ -852,11 +863,7 @@ rte_mempool_lookup(const char *name)
 	struct rte_tailq_entry *te;
 	struct rte_mempool_list *mempool_list;
 
-	if ((mempool_list =
-	     RTE_TAILQ_LOOKUP_BY_IDX(RTE_TAILQ_MEMPOOL, rte_mempool_list)) == NULL) {
-		rte_errno = E_RTE_NO_TAILQ;
-		return NULL;
-	}
+	mempool_list = RTE_TAILQ_CAST(rte_mempool_tailq.head, rte_mempool_list);
 
 	rte_rwlock_read_lock(RTE_EAL_MEMPOOL_RWLOCK);
 
@@ -882,11 +889,7 @@ void rte_mempool_walk(void (*func)(const struct rte_mempool *, void *),
 	struct rte_tailq_entry *te = NULL;
 	struct rte_mempool_list *mempool_list;
 
-	if ((mempool_list =
-	     RTE_TAILQ_LOOKUP_BY_IDX(RTE_TAILQ_MEMPOOL, rte_mempool_list)) == NULL) {
-		rte_errno = E_RTE_NO_TAILQ;
-		return;
-	}
+	mempool_list = RTE_TAILQ_CAST(rte_mempool_tailq.head, rte_mempool_list);
 
 	rte_rwlock_read_lock(RTE_EAL_MEMPOOL_RWLOCK);
 

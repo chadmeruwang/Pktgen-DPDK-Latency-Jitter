@@ -138,7 +138,7 @@ add_xen_guest(int32_t dom_id)
 	if ((guest = get_xen_guest(dom_id)) != NULL)
 		return guest;
 
-	guest = (struct xen_guest * )calloc(1, sizeof(struct xen_guest));
+	guest = calloc(1, sizeof(struct xen_guest));
 	if (guest) {
 		RTE_LOG(ERR, XENHOST, "  %s: return newly created guest with %d rings\n", __func__, guest->vring_num);
 		TAILQ_INSERT_TAIL(&guest_root, guest, next);
@@ -181,8 +181,8 @@ add_config_ll_entry(struct virtio_net_config_ll *new_ll_dev)
 			ll_root = new_ll_dev;
 		} else {
 			/* increment through the ll until we find un unused device_id,
- 			 * insert the device at that entry
- 			 */
+			 * insert the device at that entry
+			 */
 			while ((ll_dev->next != NULL) && (ll_dev->dev.device_fh == (ll_dev->next->dev.device_fh - 1)))
 				ll_dev = ll_dev->next;
 
@@ -255,8 +255,8 @@ virtio_net_config_ll *new_device(unsigned int virtio_idx, struct xen_guest *gues
 
 	/* Setup device and virtqueues. */
 	new_ll_dev   = calloc(1, sizeof(struct virtio_net_config_ll));
-	virtqueue_rx = rte_zmalloc(NULL, sizeof(struct vhost_virtqueue), CACHE_LINE_SIZE);
-	virtqueue_tx = rte_zmalloc(NULL, sizeof(struct vhost_virtqueue), CACHE_LINE_SIZE);
+	virtqueue_rx = rte_zmalloc(NULL, sizeof(struct vhost_virtqueue), RTE_CACHE_LINE_SIZE);
+	virtqueue_tx = rte_zmalloc(NULL, sizeof(struct vhost_virtqueue), RTE_CACHE_LINE_SIZE);
 	if (new_ll_dev == NULL || virtqueue_rx == NULL || virtqueue_tx == NULL)
 		goto err;
 
@@ -298,10 +298,9 @@ virtio_net_config_ll *new_device(unsigned int virtio_idx, struct xen_guest *gues
 err:
 	if (new_ll_dev)
 		free(new_ll_dev);
-	if (virtqueue_rx)
-		rte_free(virtqueue_rx);
-	if (virtqueue_tx)
-		rte_free(virtqueue_tx);
+	rte_free(virtqueue_rx);
+	rte_free(virtqueue_tx);
+
 	return NULL;
 }
 
@@ -591,5 +590,3 @@ init_virtio_xen(struct virtio_net_device_ops const *const ops)
 		return -1;
 	return 0;
 }
-
-

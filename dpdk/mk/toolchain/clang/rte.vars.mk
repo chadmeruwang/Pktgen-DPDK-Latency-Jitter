@@ -38,11 +38,8 @@
 #   - define TOOLCHAIN_ASFLAGS variable (overriden by cmdline value)
 #
 
-ifeq ($(KERNELRELEASE),)
 CC        = $(CROSS)clang
-else
-CC        = $(CROSS)gcc
-endif
+KERNELCC  = $(CROSS)gcc
 CPP       = $(CROSS)cpp
 # for now, we don't use as but nasm.
 # AS      = $(CROSS)as
@@ -74,6 +71,9 @@ WERROR_FLAGS += -Wundef -Wwrite-strings
 
 # process cpu flags
 include $(RTE_SDK)/mk/toolchain/$(RTE_TOOLCHAIN)/rte.toolchain-compat.mk
+
+# workaround clang bug with warning "missing field initializer" for "= {0}"
+WERROR_FLAGS += -Wno-missing-field-initializers
 
 export CC AS AR LD OBJCOPY OBJDUMP STRIP READELF
 export TOOLCHAIN_CFLAGS TOOLCHAIN_LDFLAGS TOOLCHAIN_ASFLAGS

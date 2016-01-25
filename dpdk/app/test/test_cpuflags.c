@@ -74,12 +74,48 @@ cpu_flag_result(int result)
  * - Check if register and CPUID functions fail properly
  */
 
-int
+static int
 test_cpuflags(void)
 {
 	int result;
 	printf("\nChecking for flags from different registers...\n");
 
+#ifdef RTE_ARCH_PPC_64
+	printf("Check for PPC64:\t\t");
+	CHECK_FOR_FLAG(RTE_CPUFLAG_PPC64);
+
+	printf("Check for PPC32:\t\t");
+	CHECK_FOR_FLAG(RTE_CPUFLAG_PPC32);
+
+	printf("Check for VSX:\t\t");
+	CHECK_FOR_FLAG(RTE_CPUFLAG_VSX);
+
+	printf("Check for DFP:\t\t");
+	CHECK_FOR_FLAG(RTE_CPUFLAG_DFP);
+
+	printf("Check for FPU:\t\t");
+	CHECK_FOR_FLAG(RTE_CPUFLAG_FPU);
+
+	printf("Check for SMT:\t\t");
+	CHECK_FOR_FLAG(RTE_CPUFLAG_SMT);
+
+	printf("Check for MMU:\t\t");
+	CHECK_FOR_FLAG(RTE_CPUFLAG_MMU);
+
+	printf("Check for ALTIVEC:\t\t");
+	CHECK_FOR_FLAG(RTE_CPUFLAG_ALTIVEC);
+
+	printf("Check for ARCH_2_06:\t\t");
+	CHECK_FOR_FLAG(RTE_CPUFLAG_ARCH_2_06);
+
+	printf("Check for ARCH_2_07:\t\t");
+	CHECK_FOR_FLAG(RTE_CPUFLAG_ARCH_2_07);
+
+	printf("Check for ICACHE_SNOOP:\t\t");
+	CHECK_FOR_FLAG(RTE_CPUFLAG_ICACHE_SNOOP);
+#endif
+
+#if defined(RTE_ARCH_X86_64) || defined(RTE_ARCH_I686)
 	printf("Check for SSE:\t\t");
 	CHECK_FOR_FLAG(RTE_CPUFLAG_SSE);
 
@@ -115,8 +151,7 @@ test_cpuflags(void)
 
 	printf("Check for INVTSC:\t");
 	CHECK_FOR_FLAG(RTE_CPUFLAG_INVTSC);
-
-
+#endif
 
 	/*
 	 * Check if invalid data is handled properly
@@ -129,3 +164,9 @@ test_cpuflags(void)
 
 	return 0;
 }
+
+static struct test_command cpuflags_cmd = {
+	.command = "cpuflags_autotest",
+	.callback = test_cpuflags,
+};
+REGISTER_TEST_COMMAND(cpuflags_cmd);

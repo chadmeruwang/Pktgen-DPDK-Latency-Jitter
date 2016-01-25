@@ -47,7 +47,6 @@
 #include <rte_memzone.h>
 #include <rte_launch.h>
 #include <rte_cycles.h>
-#include <rte_tailq.h>
 #include <rte_eal.h>
 #include <rte_per_lcore.h>
 #include <rte_lcore.h>
@@ -227,9 +226,8 @@ hash_create_free(__attribute__((unused)) void *arg)
 	struct rte_hash_parameters hash_params = {
 		.name = NULL,
 		.entries = 16,
-		.bucket_entries = 4,
 		.key_len = 4,
-		.hash_func = (rte_hash_function)rte_jhash2,
+		.hash_func = (rte_hash_function)rte_jhash_32b,
 		.hash_func_init_val = 0,
 		.socket_id = 0,
 	};
@@ -465,7 +463,7 @@ launch_test(struct test_case *pt_case)
 /**
  * Main entry of func_reentrancy test
  */
-int
+static int
 test_func_reentrancy(void)
 {
 	uint32_t case_id;
@@ -492,3 +490,9 @@ test_func_reentrancy(void)
 
 	return 0;
 }
+
+static struct test_command func_reentrancy_cmd = {
+	.command = "func_reentrancy_autotest",
+	.callback = test_func_reentrancy,
+};
+REGISTER_TEST_COMMAND(func_reentrancy_cmd);

@@ -36,6 +36,10 @@ LIB = librte_mempool.a
 
 CFLAGS += $(WERROR_FLAGS) -I$(SRCDIR) -O3
 
+EXPORT_MAP := rte_mempool_version.map
+
+LIBABIVER := 1
+
 # all source are stored in SRCS-y
 SRCS-$(CONFIG_RTE_LIBRTE_MEMPOOL) +=  rte_mempool.c
 ifeq ($(CONFIG_RTE_LIBRTE_XEN_DOM0),y)
@@ -44,8 +48,6 @@ endif
 # install includes
 SYMLINK-$(CONFIG_RTE_LIBRTE_MEMPOOL)-include := rte_mempool.h
 
-# this lib needs eal, rte_ring and rte_malloc
 DEPDIRS-$(CONFIG_RTE_LIBRTE_MEMPOOL) += lib/librte_eal lib/librte_ring
-DEPDIRS-$(CONFIG_RTE_LIBRTE_MEMPOOL) += lib/librte_malloc
 
 include $(RTE_SDK)/mk/rte.lib.mk

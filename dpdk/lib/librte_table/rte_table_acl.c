@@ -36,13 +36,30 @@
 
 #include <rte_common.h>
 #include <rte_mbuf.h>
+#include <rte_memory.h>
 #include <rte_malloc.h>
 #include <rte_log.h>
 
 #include "rte_table_acl.h"
 #include <rte_ether.h>
 
+#ifdef RTE_TABLE_STATS_COLLECT
+
+#define RTE_TABLE_ACL_STATS_PKTS_IN_ADD(table, val) \
+	table->stats.n_pkts_in += val
+#define RTE_TABLE_ACL_STATS_PKTS_LOOKUP_MISS(table, val) \
+	table->stats.n_pkts_lookup_miss += val
+
+#else
+
+#define RTE_TABLE_ACL_STATS_PKTS_IN_ADD(table, val)
+#define RTE_TABLE_ACL_STATS_PKTS_LOOKUP_MISS(table, val)
+
+#endif
+
 struct rte_table_acl {
+	struct rte_table_stats stats;
+
 	/* Low-level ACL table */
 	char name[2][RTE_ACL_NAMESIZE];
 	struct rte_acl_param acl_params; /* for creating low level acl table */
@@ -75,7 +92,7 @@ rte_table_acl_create(
 	uint32_t action_table_size, acl_rule_list_size, acl_rule_memory_size;
 	uint32_t total_size;
 
-	RTE_BUILD_BUG_ON(((sizeof(struct rte_table_acl) % CACHE_LINE_SIZE)
+	RTE_BUILD_BUG_ON(((sizeof(struct rte_table_acl) % RTE_CACHE_LINE_SIZE)
 		!= 0));
 
 	/* Check input parameters */
@@ -102,15 +119,15 @@ rte_table_acl_create(
 	entry_size = RTE_ALIGN(entry_size, sizeof(uint64_t));
 
 	/* Memory allocation */
-	action_table_size = CACHE_LINE_ROUNDUP(p->n_rules * entry_size);
+	action_table_size = RTE_CACHE_LINE_ROUNDUP(p->n_rules * entry_size);
 	acl_rule_list_size =
-		CACHE_LINE_ROUNDUP(p->n_rules * sizeof(struct rte_acl_rule *));
-	acl_rule_memory_size = CACHE_LINE_ROUNDUP(p->n_rules *
+		RTE_CACHE_LINE_ROUNDUP(p->n_rules * sizeof(struct rte_acl_rule *));
+	acl_rule_memory_size = RTE_CACHE_LINE_ROUNDUP(p->n_rules *
 		RTE_ACL_RULE_SZ(p->n_rule_fields));
 	total_size = sizeof(struct rte_table_acl) + action_table_size +
 		acl_rule_list_size + acl_rule_memory_size;
 
-	acl = rte_zmalloc_socket("TABLE", total_size, CACHE_LINE_SIZE,
+	acl = rte_zmalloc_socket("TABLE", total_size, RTE_CACHE_LINE_SIZE,
 		socket_id);
 	if (acl == NULL) {
 		RTE_LOG(ERR, TABLE,
@@ -440,6 +457,9 @@ rte_table_acl_lookup(
 	uint64_t pkts_out_mask;
 	uint32_t n_pkts, i, j;
 
+	__rte_unused uint32_t n_pkts_in = __builtin_popcountll(pkts_mask);
+	RTE_TABLE_ACL_STATS_PKTS_IN_ADD(acl, n_pkts_in);
+
 	/* Input conversion */
 	for (i = 0, j = 0; i < (uint32_t)(RTE_PORT_IN_BURST_SIZE_MAX -
 		__builtin_clzll(pkts_mask)); i++) {
@@ -477,6 +497,21 @@ rte_table_acl_lookup(
 	}
 
 	*lookup_hit_mask = pkts_out_mask;
+	RTE_TABLE_ACL_STATS_PKTS_LOOKUP_MISS(acl, n_pkts_in - __builtin_popcountll(pkts_out_mask));
+
+	return 0;
+}
+
+static int
+rte_table_acl_stats_read(void *table, struct rte_table_stats *stats, int clear)
+{
+	struct rte_table_acl *acl = (struct rte_table_acl *) table;
+
+	if (stats != NULL)
+		memcpy(stats, &acl->stats, sizeof(acl->stats));
+
+	if (clear)
+		memset(&acl->stats, 0, sizeof(acl->stats));
 
 	return 0;
 }
@@ -487,4 +522,5 @@ struct rte_table_ops rte_table_acl_ops = {
 	.f_add = rte_table_acl_entry_add,
 	.f_delete = rte_table_acl_entry_delete,
 	.f_lookup = rte_table_acl_lookup,
+	.f_stats = rte_table_acl_stats_read,
 };

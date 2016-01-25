@@ -48,7 +48,6 @@
 #include <rte_memory.h>
 #include <rte_memcpy.h>
 #include <rte_memzone.h>
-#include <rte_tailq.h>
 #include <rte_eal.h>
 #include <rte_per_lcore.h>
 #include <rte_launch.h>
@@ -86,8 +85,7 @@ struct app_params app = {
 	.ring_tx_size = 128,
 
 	/* Buffer pool */
-	.pool_buffer_size = 2048 + sizeof(struct rte_mbuf) +
-		RTE_PKTMBUF_HEADROOM,
+	.pool_buffer_size = 2048 + RTE_PKTMBUF_HEADROOM,
 	.pool_size = 32 * 1024,
 	.pool_cache_size = 256,
 
@@ -112,7 +110,7 @@ static struct rte_eth_conf port_conf = {
 	.rx_adv_conf = {
 		.rss_conf = {
 			.rss_key = NULL,
-			.rss_hf = ETH_RSS_IPV4 | ETH_RSS_IPV6,
+			.rss_hf = ETH_RSS_IP,
 		},
 	},
 	.txmode = {
@@ -145,16 +143,8 @@ app_init_mbuf_pools(void)
 {
 	/* Init the buffer pool */
 	RTE_LOG(INFO, USER1, "Creating the mbuf pool ...\n");
-	app.pool = rte_mempool_create(
-		"mempool",
-		app.pool_size,
-		app.pool_buffer_size,
-		app.pool_cache_size,
-		sizeof(struct rte_pktmbuf_pool_private),
-		rte_pktmbuf_pool_init, NULL,
-		rte_pktmbuf_init, NULL,
-		rte_socket_id(),
-		0);
+	app.pool = rte_pktmbuf_pool_create("mempool", app.pool_size,
+		app.pool_cache_size, 0, app.pool_buffer_size, rte_socket_id());
 	if (app.pool == NULL)
 		rte_panic("Cannot create mbuf pool\n");
 }
@@ -227,11 +217,6 @@ static void
 app_init_ports(void)
 {
 	uint32_t i;
-
-	/* Init driver */
-	RTE_LOG(INFO, USER1, "Initializing the PMD driver ...\n");
-	if (rte_eal_pci_probe() < 0)
-		rte_panic("Cannot probe PCI\n");
 
 	/* Init NIC ports, then start the ports */
 	for (i = 0; i < app.n_ports; i++) {

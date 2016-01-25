@@ -46,11 +46,10 @@
 extern "C" {
 #endif
 
-#include <rte_mbuf.h>
-
 #define RTE_DISTRIBUTOR_NAMESIZE 32 /**< Length of name for instance */
 
 struct rte_distributor;
+struct rte_mbuf;
 
 /**
  * Function to create a new distributor instance
@@ -87,6 +86,10 @@ rte_distributor_create(const char *name, unsigned socket_id,
  * Process a set of packets by distributing them among workers that request
  * packets. The distributor will ensure that no two packets that have the
  * same flow id, or tag, in the mbuf will be procesed at the same time.
+ *
+ * The user is advocated to set tag for each mbuf before calling this function.
+ * If user doesn't set the tag, the tag value can be various values depending on
+ * driver implementation and configuration.
  *
  * This is not multi-thread safe and should only be called on a single lcore.
  *

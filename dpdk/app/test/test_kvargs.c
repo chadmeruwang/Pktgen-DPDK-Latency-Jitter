@@ -78,7 +78,6 @@ static int test_valid_kvargs(void)
 	kvlist = rte_kvargs_parse(args, valid_keys);
 	if (kvlist == NULL) {
 		printf("rte_kvargs_parse() error");
-		rte_kvargs_free(kvlist);
 		goto fail;
 	}
 	rte_kvargs_free(kvlist);
@@ -89,7 +88,6 @@ static int test_valid_kvargs(void)
 	kvlist = rte_kvargs_parse(args, valid_keys);
 	if (kvlist == NULL) {
 		printf("rte_kvargs_parse() error");
-		rte_kvargs_free(kvlist);
 		goto fail;
 	}
 	/* call check_handler() for all entries with key="check" */
@@ -150,7 +148,6 @@ static int test_valid_kvargs(void)
 	kvlist = rte_kvargs_parse(args, valid_keys);
 	if (kvlist == NULL) {
 		printf("rte_kvargs_parse() error");
-		rte_kvargs_free(kvlist);
 		goto fail;
 	}
 	/* call check_handler() on all entries with key="check", it
@@ -223,7 +220,8 @@ static int test_invalid_kvargs(void)
 	return -1;
 }
 
-int test_kvargs(void)
+static int
+test_kvargs(void)
 {
 	printf("== test valid case ==\n");
 	if (test_valid_kvargs() < 0)
@@ -233,3 +231,9 @@ int test_kvargs(void)
 		return -1;
 	return 0;
 }
+
+static struct test_command kvargs_cmd = {
+	.command = "kvargs_autotest",
+	.callback = test_kvargs,
+};
+REGISTER_TEST_COMMAND(kvargs_cmd);

@@ -49,11 +49,11 @@
 #include <rte_memory.h>
 #include <rte_memcpy.h>
 #include <rte_memzone.h>
-#include <rte_tailq.h>
 #include <rte_eal.h>
 #include <rte_per_lcore.h>
 #include <rte_launch.h>
 #include <rte_atomic.h>
+#include <rte_spinlock.h>
 #include <rte_cycles.h>
 #include <rte_prefetch.h>
 #include <rte_lcore.h>
@@ -72,8 +72,6 @@
 #include <rte_tcp.h>
 #include <rte_udp.h>
 #include <rte_string_fns.h>
-
-#include "main.h"
 
 #define APP_LOOKUP_EXACT_MATCH          0
 #define APP_LOOKUP_LPM                  1
@@ -95,8 +93,6 @@
 #define RTE_LOGTYPE_L3FWD RTE_LOGTYPE_USER1
 
 #define MEMPOOL_CACHE_SIZE 256
-
-#define MBUF_SIZE (2048 + sizeof(struct rte_mbuf) + RTE_PKTMBUF_HEADROOM)
 
 /*
  * This expression is used to calculate the number of mbufs needed depending on user input, taking
@@ -215,30 +211,6 @@ static struct rte_eth_conf port_conf = {
 	},
 };
 
-static const struct rte_eth_rxconf rx_conf = {
-	.rx_thresh = {
-		.pthresh = RX_PTHRESH,
-		.hthresh = RX_HTHRESH,
-		.wthresh = RX_WTHRESH,
-	},
-	.rx_free_thresh = 32,
-};
-
-static const struct rte_eth_txconf tx_conf = {
-	.tx_thresh = {
-		.pthresh = TX_PTHRESH,
-		.hthresh = TX_HTHRESH,
-		.wthresh = TX_WTHRESH,
-	},
-	.tx_free_thresh = 0, /* Use PMD default values */
-	.tx_rs_thresh = 0, /* Use PMD default values */
-	.txq_flags = (ETH_TXQ_FLAGS_NOMULTSEGS |
-		      ETH_TXQ_FLAGS_NOVLANOFFL |
-		      ETH_TXQ_FLAGS_NOXSUMSCTP |
-		      ETH_TXQ_FLAGS_NOXSUMUDP |
-		      ETH_TXQ_FLAGS_NOXSUMTCP)
-};
-
 static struct rte_mempool * pktmbuf_pool[NB_SOCKETS];
 
 
@@ -279,7 +251,6 @@ static lookup_struct_t *l3fwd_lookup_struct[NB_SOCKETS];
 struct rte_hash_parameters l3fwd_hash_params = {
 	.name = "l3fwd_hash_0",
 	.entries = L3FWD_HASH_ENTRIES,
-	.bucket_entries = 4,
 	.key_len = sizeof(struct ipv4_5tuple),
 	.hash_func = DEFAULT_HASH_FUNC,
 	.hash_func_init_val = 0,
@@ -328,7 +299,7 @@ struct lcore_conf {
 } __rte_cache_aligned;
 
 static struct lcore_conf lcore_conf[RTE_MAX_LCORE];
-
+static rte_spinlock_t spinlock_conf[RTE_MAX_ETHPORTS] = {RTE_SPINLOCK_INITIALIZER};
 /* Send burst of packets on an output interface */
 static inline int
 send_burst(struct lcore_conf *qconf, uint16_t n, uint8_t port)
@@ -340,7 +311,10 @@ send_burst(struct lcore_conf *qconf, uint16_t n, uint8_t port)
 	queueid = qconf->tx_queue_id;
 	m_table = (struct rte_mbuf **)qconf->tx_mbufs[port].m_table;
 
+	rte_spinlock_lock(&spinlock_conf[port]);
 	ret = rte_eth_tx_burst(port, queueid, m_table, n);
+	rte_spinlock_unlock(&spinlock_conf[port]);
+
 	if (unlikely(ret < n)) {
 		do {
 			rte_pktmbuf_free(m_table[ret]);
@@ -484,12 +458,12 @@ l3fwd_simple_forward(struct rte_mbuf *m, uint8_t portid, lookup_struct_t * l3fwd
 
 	eth_hdr = rte_pktmbuf_mtod(m, struct ether_hdr *);
 
-	ipv4_hdr = (struct ipv4_hdr *)(rte_pktmbuf_mtod(m, unsigned char *) +
-				sizeof(struct ether_hdr));
+	ipv4_hdr = rte_pktmbuf_mtod_offset(m, struct ipv4_hdr *,
+					   sizeof(struct ether_hdr));
 
 #ifdef DO_RFC_1812_CHECKS
 	/* Check to make sure the packet is valid (RFC1812) */
-	if (is_valid_ipv4_pkt(ipv4_hdr, m->pkt.pkt_len) < 0) {
+	if (is_valid_ipv4_pkt(ipv4_hdr, m->pkt_len) < 0) {
 		rte_pktmbuf_free(m);
 		return;
 	}
@@ -850,13 +824,9 @@ parse_args(int argc, char **argv)
 static void
 print_ethaddr(const char *name, const struct ether_addr *eth_addr)
 {
-	printf ("%s%02X:%02X:%02X:%02X:%02X:%02X", name,
-		eth_addr->addr_bytes[0],
-		eth_addr->addr_bytes[1],
-		eth_addr->addr_bytes[2],
-		eth_addr->addr_bytes[3],
-		eth_addr->addr_bytes[4],
-		eth_addr->addr_bytes[5]);
+	char buf[ETHER_ADDR_FMT_SIZE];
+	ether_format_addr(buf, ETHER_ADDR_FMT_SIZE, eth_addr);
+	printf("%s%s", name, buf);
 }
 
 #if (APP_LOOKUP_METHOD == APP_LOOKUP_EXACT_MATCH)
@@ -951,13 +921,9 @@ init_mem(unsigned nb_mbuf)
 		}
 		if (pktmbuf_pool[socketid] == NULL) {
 			snprintf(s, sizeof(s), "mbuf_pool_%d", socketid);
-			pktmbuf_pool[socketid] =
-				rte_mempool_create(s, nb_mbuf, MBUF_SIZE,
-						   MEMPOOL_CACHE_SIZE,
-					sizeof(struct rte_pktmbuf_pool_private),
-					rte_pktmbuf_pool_init, NULL,
-					rte_pktmbuf_init, NULL,
-					socketid, 0);
+			pktmbuf_pool[socketid] = rte_pktmbuf_pool_create(s,
+				nb_mbuf, MEMPOOL_CACHE_SIZE, 0,
+				RTE_MBUF_DEFAULT_BUF_SIZE, socketid);
 			if (pktmbuf_pool[socketid] == NULL)
 				rte_exit(EXIT_FAILURE, "Cannot init mbuf pool on socket %d\n", socketid);
 			else
@@ -976,9 +942,11 @@ init_mem(unsigned nb_mbuf)
 }
 
 int
-MAIN(int argc, char **argv)
+main(int argc, char **argv)
 {
 	struct lcore_conf *qconf;
+	struct rte_eth_dev_info dev_info;
+	struct rte_eth_txconf *txconf;
 	int ret;
 	unsigned nb_ports;
 	uint16_t queueid;
@@ -1006,9 +974,6 @@ MAIN(int argc, char **argv)
 	ret = init_lcore_rx_queues();
 	if (ret < 0)
 		rte_exit(EXIT_FAILURE, "init_lcore_rx_queues failed\n");
-
-	if (rte_eal_pci_probe() < 0)
-		rte_exit(EXIT_FAILURE, "Cannot probe PCI\n");
 
 	nb_ports = rte_eth_dev_count();
 	if (nb_ports > RTE_MAX_ETHPORTS)
@@ -1055,8 +1020,13 @@ MAIN(int argc, char **argv)
 
 		printf("txq=%d,%d,%d ", portid, 0, socketid);
 		fflush(stdout);
+
+		rte_eth_dev_info_get(portid, &dev_info);
+		txconf = &dev_info.default_txconf;
+		if (port_conf.rxmode.jumbo_frame)
+			txconf->txq_flags = 0;
 		ret = rte_eth_tx_queue_setup(portid, 0, nb_txd,
-						 socketid, &tx_conf);
+						 socketid, txconf);
 		if (ret < 0)
 			rte_exit(EXIT_FAILURE, "rte_eth_tx_queue_setup: err=%d, "
 				"port=%d\n", ret, portid);
@@ -1086,7 +1056,8 @@ MAIN(int argc, char **argv)
 			fflush(stdout);
 
 			ret = rte_eth_rx_queue_setup(portid, queueid, nb_rxd,
-						socketid, &rx_conf, pktmbuf_pool[socketid]);
+						socketid, NULL,
+						pktmbuf_pool[socketid]);
 			if (ret < 0)
 				rte_exit(EXIT_FAILURE, "rte_eth_rx_queue_setup: err=%d,"
 						"port=%d\n", ret, portid);

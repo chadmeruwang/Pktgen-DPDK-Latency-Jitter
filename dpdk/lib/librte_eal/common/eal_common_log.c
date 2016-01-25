@@ -48,7 +48,6 @@
 #include <rte_launch.h>
 #include <rte_common.h>
 #include <rte_cycles.h>
-#include <rte_tailq.h>
 #include <rte_eal.h>
 #include <rte_per_lcore.h>
 #include <rte_lcore.h>
@@ -120,7 +119,10 @@ rte_log_add_in_history(const char *buf, size_t size)
 	/* get a buffer for adding in history */
 	if (log_history_size > RTE_LOG_HISTORY) {
 		hist_buf = STAILQ_FIRST(&log_history);
-		STAILQ_REMOVE_HEAD(&log_history, next);
+		if (hist_buf) {
+			STAILQ_REMOVE_HEAD(&log_history, next);
+			log_history_size--;
+		}
 	}
 	else {
 		if (rte_mempool_mc_get(log_history_mp, &obj) < 0)
@@ -176,6 +178,13 @@ rte_set_log_level(uint32_t level)
 	rte_logs.level = (uint32_t)level;
 }
 
+/* Get global log level */
+uint32_t
+rte_get_log_level(void)
+{
+	return rte_logs.level;
+}
+
 /* Set global log type */
 void
 rte_set_log_type(uint32_t type, int enable)
@@ -186,11 +195,20 @@ rte_set_log_type(uint32_t type, int enable)
 		rte_logs.type &= (~type);
 }
 
+/* Get global log type */
+uint32_t
+rte_get_log_type(void)
+{
+	return rte_logs.type;
+}
+
 /* get the current loglevel for the message beeing processed */
 int rte_log_cur_msg_loglevel(void)
 {
 	unsigned lcore_id;
 	lcore_id = rte_lcore_id();
+	if (lcore_id >= RTE_MAX_LCORE)
+		return rte_get_log_level();
 	return log_cur_msg[lcore_id].loglevel;
 }
 
@@ -199,6 +217,8 @@ int rte_log_cur_msg_logtype(void)
 {
 	unsigned lcore_id;
 	lcore_id = rte_lcore_id();
+	if (lcore_id >= RTE_MAX_LCORE)
+		return rte_get_log_type();
 	return log_cur_msg[lcore_id].logtype;
 }
 
@@ -217,6 +237,7 @@ rte_log_dump_history(FILE *out)
 	rte_spinlock_lock(&log_list_lock);
 	tmp_log_history = log_history;
 	STAILQ_INIT(&log_history);
+	log_history_size = 0;
 	rte_spinlock_unlock(&log_list_lock);
 
 	for (i=0; i<RTE_LOG_HISTORY; i++) {
@@ -248,18 +269,21 @@ rte_log_dump_history(FILE *out)
  * defined by the previous call to rte_openlog_stream().
  */
 int
-rte_vlog(__attribute__((unused)) uint32_t level,
-	 __attribute__((unused)) uint32_t logtype,
-	   const char *format, va_list ap)
+rte_vlog(uint32_t level, uint32_t logtype, const char *format, va_list ap)
 {
 	int ret;
 	FILE *f = rte_logs.file;
 	unsigned lcore_id;
 
+	if ((level > rte_logs.level) || !(logtype & rte_logs.type))
+		return 0;
+
 	/* save loglevel and logtype in a global per-lcore variable */
 	lcore_id = rte_lcore_id();
-	log_cur_msg[lcore_id].loglevel = level;
-	log_cur_msg[lcore_id].logtype = logtype;
+	if (lcore_id < RTE_MAX_LCORE) {
+		log_cur_msg[lcore_id].loglevel = level;
+		log_cur_msg[lcore_id].logtype = logtype;
+	}
 
 	ret = vfprintf(f, format, ap);
 	fflush(f);
@@ -269,6 +293,7 @@ rte_vlog(__attribute__((unused)) uint32_t level,
 /*
  * Generates a log message The message will be sent in the stream
  * defined by the previous call to rte_openlog_stream().
+ * No need to check level here, done by rte_vlog().
  */
 int
 rte_log(uint32_t level, uint32_t logtype, const char *format, ...)
@@ -310,4 +335,3 @@ rte_eal_common_log_init(FILE *default_log)
 	rte_openlog_stream(default_log);
 	return 0;
 }
-

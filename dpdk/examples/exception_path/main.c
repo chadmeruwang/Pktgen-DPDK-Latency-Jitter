@@ -54,7 +54,6 @@
 #include <rte_memory.h>
 #include <rte_memcpy.h>
 #include <rte_memzone.h>
-#include <rte_tailq.h>
 #include <rte_eal.h>
 #include <rte_per_lcore.h>
 #include <rte_launch.h>
@@ -82,11 +81,10 @@
 #define MAX_PORTS               (RTE_MAX_LCORE / 2)
 
 /* Max size of a single packet */
-#define MAX_PACKET_SZ           2048
+#define MAX_PACKET_SZ (2048)
 
-/* Number of bytes needed for each mbuf */
-#define MBUF_SZ \
-	(MAX_PACKET_SZ + sizeof(struct rte_mbuf) + RTE_PKTMBUF_HEADROOM)
+/* Size of the data buffer in each mbuf */
+#define MBUF_DATA_SZ (MAX_PACKET_SZ + RTE_PKTMBUF_HEADROOM)
 
 /* Number of mbufs in mempool that is created */
 #define NB_MBUF                 8192
@@ -109,31 +107,6 @@
  * controller's datasheet and supporting DPDK documentation for guidance
  * on how these parameters should be set.
  */
-/* RX ring configuration */
-static const struct rte_eth_rxconf rx_conf = {
-	.rx_thresh = {
-		.pthresh = 8,   /* Ring prefetch threshold */
-		.hthresh = 8,   /* Ring host threshold */
-		.wthresh = 4,   /* Ring writeback threshold */
-	},
-	.rx_free_thresh = 0,    /* Immediately free RX descriptors */
-};
-
-/*
- * These default values are optimized for use with the Intel(R) 82599 10 GbE
- * Controller and the DPDK ixgbe PMD. Consider using other values for other
- * network controllers and/or network drivers.
- */
-/* TX ring configuration */
-static const struct rte_eth_txconf tx_conf = {
-	.tx_thresh = {
-		.pthresh = 36,  /* Ring prefetch threshold */
-		.hthresh = 0,   /* Ring host threshold */
-		.wthresh = 0,   /* Ring writeback threshold */
-	},
-	.tx_free_thresh = 0,    /* Use PMD default values */
-	.tx_rs_thresh = 0,      /* Use PMD default values */
-};
 
 /* Options for configuring ethernet port */
 static const struct rte_eth_conf port_conf = {
@@ -302,16 +275,17 @@ main_loop(__attribute__((unused)) void *arg)
 			if (m == NULL)
 				continue;
 
-			ret = read(tap_fd, m->pkt.data, MAX_PACKET_SZ);
+			ret = read(tap_fd, rte_pktmbuf_mtod(m, void *),
+				MAX_PACKET_SZ);
 			lcore_stats[lcore_id].rx++;
 			if (unlikely(ret < 0)) {
 				FATAL_ERROR("Reading from %s interface failed",
 				            tap_name);
 			}
-			m->pkt.nb_segs = 1;
-			m->pkt.next = NULL;
-			m->pkt.pkt_len = (uint16_t)ret;
-			m->pkt.data_len = (uint16_t)ret;
+			m->nb_segs = 1;
+			m->next = NULL;
+			m->pkt_len = (uint16_t)ret;
+			m->data_len = (uint16_t)ret;
 			ret = rte_eth_tx_burst(port_ids[lcore_id], 0, &m, 1);
 			if (unlikely(ret < 1)) {
 				rte_pktmbuf_free(m);
@@ -460,13 +434,14 @@ init_port(uint8_t port)
 		            (unsigned)port, ret);
 
 	ret = rte_eth_rx_queue_setup(port, 0, NB_RXD, rte_eth_dev_socket_id(port),
-                                 &rx_conf, pktmbuf_pool);
+				NULL,
+				pktmbuf_pool);
 	if (ret < 0)
 		FATAL_ERROR("Could not setup up RX queue for port%u (%d)",
 		            (unsigned)port, ret);
 
 	ret = rte_eth_tx_queue_setup(port, 0, NB_TXD, rte_eth_dev_socket_id(port),
-                                 &tx_conf);
+				NULL);
 	if (ret < 0)
 		FATAL_ERROR("Could not setup up TX queue for port%u (%d)",
 		            (unsigned)port, ret);
@@ -556,27 +531,17 @@ main(int argc, char** argv)
 	parse_args(argc, argv);
 
 	/* Create the mbuf pool */
-	pktmbuf_pool = rte_mempool_create("mbuf_pool", NB_MBUF, MBUF_SZ,
-			MEMPOOL_CACHE_SZ,
-			sizeof(struct rte_pktmbuf_pool_private),
-			rte_pktmbuf_pool_init, NULL, rte_pktmbuf_init, NULL,
-			rte_socket_id(), 0);
+	pktmbuf_pool = rte_pktmbuf_pool_create("mbuf_pool", NB_MBUF,
+			MEMPOOL_CACHE_SZ, 0, MBUF_DATA_SZ, rte_socket_id());
 	if (pktmbuf_pool == NULL) {
 		FATAL_ERROR("Could not initialise mbuf pool");
 		return -1;
 	}
 
-	/* Scan PCI bus for recognised devices */
-	ret = rte_eal_pci_probe();
-	if (ret < 0)
-		FATAL_ERROR("Could not probe PCI (%d)", ret);
-
 	/* Get number of ports found in scan */
 	nb_sys_ports = rte_eth_dev_count();
 	if (nb_sys_ports == 0)
-		FATAL_ERROR("No supported Ethernet devices found - check that "
-		            "CONFIG_RTE_LIBRTE_IGB_PMD=y and/or "
-		            "CONFIG_RTE_LIBRTE_IXGBE_PMD=y in the config file");
+		FATAL_ERROR("No supported Ethernet device found");
 	/* Find highest port set in portmask */
 	for (high_port = (sizeof(ports_mask) * 8) - 1;
 			(high_port != 0) && !(ports_mask & (1 << high_port));

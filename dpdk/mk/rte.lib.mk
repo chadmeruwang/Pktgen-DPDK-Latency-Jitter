@@ -38,9 +38,14 @@ include $(RTE_SDK)/mk/internal/rte.depdirs-pre.mk
 # VPATH contains at least SRCDIR
 VPATH += $(SRCDIR)
 
-ifeq ($(RTE_BUILD_SHARED_LIB),y)
-LIB := $(patsubst %.a,%.so,$(LIB))
+ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
+LIB := $(patsubst %.a,%.so.$(LIBABIVER),$(LIB))
+ifeq ($(CONFIG_RTE_NEXT_ABI),y)
+LIB := $(LIB).1
 endif
+CPU_LDFLAGS += --version-script=$(SRCDIR)/$(EXPORT_MAP)
+endif
+
 
 _BUILD = $(LIB)
 _INSTALL = $(INSTALL-FILES-y) $(SYMLINK-FILES-y) $(RTE_OUTPUT)/lib/$(LIB)
@@ -61,12 +66,13 @@ exe2cmd = $(strip $(call dotfile,$(patsubst %,%.cmd,$(1))))
 
 ifeq ($(LINK_USING_CC),1)
 # Override the definition of LD here, since we're linking with CC
-LD := $(CC)
-LD_MULDEFS := $(call linkerprefix,-z$(comma)muldefs)
-CPU_LDFLAGS := $(call linkerprefix,$(CPU_LDFLAGS))
+LD := $(CC) $(CPU_CFLAGS)
+_CPU_LDFLAGS := $(call linkerprefix,$(CPU_LDFLAGS))
+else
+_CPU_LDFLAGS := $(CPU_LDFLAGS)
 endif
 
-O_TO_A = $(AR) crus $(LIB) $(OBJS-y)
+O_TO_A = $(AR) crDs $(LIB) $(OBJS-y)
 O_TO_A_STR = $(subst ','\'',$(O_TO_A)) #'# fix syntax highlight
 O_TO_A_DISP = $(if $(V),"$(O_TO_A_STR)","  AR $(@)")
 O_TO_A_CMD = "cmd_$@ = $(O_TO_A_STR)"
@@ -75,7 +81,8 @@ O_TO_A_DO = @set -e; \
 	$(O_TO_A) && \
 	echo $(O_TO_A_CMD) > $(call exe2cmd,$(@))
 
-O_TO_S = $(LD) $(CPU_LDFLAGS) $(LD_MULDEFS) -shared $(OBJS-y) -o $(LIB)
+O_TO_S = $(LD) $(_CPU_LDFLAGS) $(EXTRA_LDFLAGS) $(LDLIBS) -shared $(OBJS-y) \
+	 -Wl,-soname,$(LIB) -o $(LIB)
 O_TO_S_STR = $(subst ','\'',$(O_TO_S)) #'# fix syntax highlight
 O_TO_S_DISP = $(if $(V),"$(O_TO_S_STR)","  LD $(@)")
 O_TO_S_DO = @set -e; \
@@ -83,7 +90,7 @@ O_TO_S_DO = @set -e; \
 	$(O_TO_S) && \
 	echo $(O_TO_S_CMD) > $(call exe2cmd,$(@))
 
-ifeq ($(RTE_BUILD_SHARED_LIB),n)
+ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),n)
 O_TO_C = $(AR) crus $(LIB_ONE) $(OBJS-y)
 O_TO_C_STR = $(subst ','\'',$(O_TO_C)) #'# fix syntax highlight
 O_TO_C_DISP = $(if $(V),"$(O_TO_C_STR)","  AR_C $(@)")
@@ -91,7 +98,7 @@ O_TO_C_DO = @set -e; \
 	$(lib_dir) \
 	$(copy_obj)
 else
-O_TO_C = $(LD) $(LD_MULDEFS) -shared $(OBJS-y) -o $(LIB_ONE)
+O_TO_C = $(LD) -shared $(OBJS-y) -o $(LIB_ONE)
 O_TO_C_STR = $(subst ','\'',$(O_TO_C)) #'# fix syntax highlight
 O_TO_C_DISP = $(if $(V),"$(O_TO_C_STR)","  LD_C $(@)")
 O_TO_C_DO = @set -e; \
@@ -106,8 +113,12 @@ lib_dir = [ -d $(RTE_OUTPUT)/lib ] || mkdir -p $(RTE_OUTPUT)/lib;
 #
 # Archive objects in .a file if needed
 #
-ifeq ($(RTE_BUILD_SHARED_LIB),y)
+ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
 $(LIB): $(OBJS-y) $(DEP_$(LIB)) FORCE
+ifeq ($(LIBABIVER),)
+	@echo "Must Specify a $(LIB) ABI version"
+	@false
+endif
 	@[ -d $(dir $@) ] || mkdir -p $(dir $@)
 	$(if $(D),\
 		@echo -n "$< -> $@ " ; \
@@ -121,7 +132,8 @@ $(LIB): $(OBJS-y) $(DEP_$(LIB)) FORCE
 		$(depfile_missing),\
 		$(depfile_newer)),\
 		$(O_TO_S_DO))
-ifeq ($(RTE_BUILD_COMBINE_LIBS),y)
+
+ifeq ($(CONFIG_RTE_BUILD_COMBINE_LIBS),y)
 	$(if $(or \
         $(file_missing),\
         $(call cmdline_changed,$(O_TO_C_STR)),\
@@ -144,7 +156,7 @@ $(LIB): $(OBJS-y) $(DEP_$(LIB)) FORCE
 	    $(depfile_missing),\
 	    $(depfile_newer)),\
 	    $(O_TO_A_DO))
-ifeq ($(RTE_BUILD_COMBINE_LIBS),y)
+ifeq ($(CONFIG_RTE_BUILD_COMBINE_LIBS),y)
 	$(if $(or \
         $(file_missing),\
         $(call cmdline_changed,$(O_TO_C_STR)),\
@@ -161,6 +173,13 @@ $(RTE_OUTPUT)/lib/$(LIB): $(LIB)
 	@echo "  INSTALL-LIB $(LIB)"
 	@[ -d $(RTE_OUTPUT)/lib ] || mkdir -p $(RTE_OUTPUT)/lib
 	$(Q)cp -f $(LIB) $(RTE_OUTPUT)/lib
+ifeq ($(CONFIG_RTE_BUILD_SHARED_LIB),y)
+ifeq ($(CONFIG_RTE_NEXT_ABI),y)
+	$(Q)ln -s -f $< $(basename $(basename $@))
+else
+	$(Q)ln -s -f $< $(basename $@)
+endif
+endif
 
 #
 # Clean all generated files

@@ -45,31 +45,9 @@
 /*
  * Debug test
  * ==========
- *
- * - Call rte_dump_stack() and rte_dump_registers(). The result is not checked
- *   currently, as the functions are not implemented on baremetal.
- * - Check that rte_panic() terminates the program using a non-zero error code.
- *   (Only implemented on linux, since it requires the fork() system call)
  */
 
-#ifdef RTE_EXEC_ENV_BAREMETAL
-
-/* baremetal - don't test rte_panic or rte_exit */
-static int
-test_panic(void)
-{
-	return 0;
-}
-
-static int
-test_exit(void)
-{
-	return 0;
-}
-
-#else
-
-/* linuxapp - use fork() to test rte_panic() */
+/* use fork() to test rte_panic() */
 static int
 test_panic(void)
 {
@@ -94,7 +72,7 @@ test_panic(void)
 	return 0;
 }
 
-/* linuxapp - use fork() to test rte_exit() */
+/* use fork() to test rte_exit() */
 static int
 test_exit_val(int exit_val)
 {
@@ -134,8 +112,6 @@ test_exit(void)
 	return 0;
 }
 
-#endif
-
 static void
 dummy_app_usage(const char *progname)
 {
@@ -156,7 +132,7 @@ test_usage(void)
 	return 0;
 }
 
-int
+static int
 test_debug(void)
 {
 	rte_dump_stack();
@@ -169,3 +145,9 @@ test_debug(void)
 		return -1;
 	return 0;
 }
+
+static struct test_command debug_cmd = {
+	.command = "debug_autotest",
+	.callback = test_debug,
+};
+REGISTER_TEST_COMMAND(debug_cmd);

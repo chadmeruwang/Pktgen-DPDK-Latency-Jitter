@@ -47,7 +47,6 @@
 #include <rte_memzone.h>
 #include <rte_launch.h>
 #include <rte_cycles.h>
-#include <rte_tailq.h>
 #include <rte_eal.h>
 #include <rte_per_lcore.h>
 #include <rte_lcore.h>
@@ -95,7 +94,7 @@
 #define TIME_S 5
 #define MEMPOOL_ELT_SIZE 2048
 #define MAX_KEEP 128
-#define MEMPOOL_SIZE ((RTE_MAX_LCORE*(MAX_KEEP+RTE_MEMPOOL_CACHE_MAX_SIZE))-1)
+#define MEMPOOL_SIZE ((rte_lcore_count()*(MAX_KEEP+RTE_MEMPOOL_CACHE_MAX_SIZE))-1)
 
 static struct rte_mempool *mp;
 static struct rte_mempool *mp_cache, *mp_nocache;
@@ -273,7 +272,7 @@ do_one_mempool_test(unsigned cores)
 	return 0;
 }
 
-int
+static int
 test_mempool_perf(void)
 {
 	rte_atomic32_init(&synchro);
@@ -329,3 +328,9 @@ test_mempool_perf(void)
 
 	return 0;
 }
+
+static struct test_command mempool_perf_cmd = {
+	.command = "mempool_perf_autotest",
+	.callback = test_mempool_perf,
+};
+REGISTER_TEST_COMMAND(mempool_perf_cmd);

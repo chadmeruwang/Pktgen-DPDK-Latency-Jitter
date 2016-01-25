@@ -41,8 +41,6 @@
 
 #include "test.h"
 
-#ifdef RTE_LIBRTE_LPM
-
 #include <rte_common.h>
 #include <rte_cycles.h>
 #include <rte_memory.h>
@@ -1902,7 +1900,7 @@ perf_test(void)
 /*
  * Do all unit and performance tests.
  */
-int
+static int
 test_lpm6(void)
 {
 	unsigned i;
@@ -1920,13 +1918,8 @@ test_lpm6(void)
 	return global_status;
 }
 
-#else /* RTE_LIBRTE_LPM */
-
-int
-test_lpm6(void)
-{
-        printf("The LPM library is not included in this build\n");
-        return 0;
-}
-
-#endif /* RTE_LIBRTE_LPM */
+static struct test_command lpm6_cmd = {
+	.command = "lpm6_autotest",
+	.callback = test_lpm6,
+};
+REGISTER_TEST_COMMAND(lpm6_cmd);

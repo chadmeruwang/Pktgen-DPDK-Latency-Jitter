@@ -48,7 +48,6 @@
 #include <rte_memcpy.h>
 #include <rte_memzone.h>
 #include <rte_launch.h>
-#include <rte_tailq.h>
 #include <rte_eal.h>
 #include <rte_per_lcore.h>
 #include <rte_lcore.h>
@@ -62,7 +61,7 @@
 
 #include "test.h"
 
-#define MBUF_SIZE               2048
+#define MBUF_DATA_SIZE          2048
 #define NB_MBUF                 128
 #define MBUF_TEST_DATA_LEN      1464
 #define MBUF_TEST_DATA_LEN2     50
@@ -70,19 +69,23 @@
 #define MBUF_TEST_HDR2_LEN      30
 #define MBUF_TEST_ALL_HDRS_LEN  (MBUF_TEST_HDR1_LEN+MBUF_TEST_HDR2_LEN)
 
+/* size of private data for mbuf in pktmbuf_pool2 */
+#define MBUF2_PRIV_SIZE         128
+
 #define REFCNT_MAX_ITER         64
 #define REFCNT_MAX_TIMEOUT      10
 #define REFCNT_MAX_REF          (RTE_MAX_LCORE)
 #define REFCNT_MBUF_NUM         64
-#define REFCNT_MBUF_SIZE        (sizeof (struct rte_mbuf) + RTE_PKTMBUF_HEADROOM)
 #define REFCNT_RING_SIZE        (REFCNT_MBUF_NUM * REFCNT_MAX_REF)
+
+#define MAGIC_DATA              0x42424242
 
 #define MAKE_STRING(x)          # x
 
 static struct rte_mempool *pktmbuf_pool = NULL;
-static struct rte_mempool *ctrlmbuf_pool = NULL;
+static struct rte_mempool *pktmbuf_pool2 = NULL;
 
-#if defined RTE_MBUF_SCATTER_GATHER  && defined RTE_MBUF_REFCNT_ATOMIC
+#ifdef RTE_MBUF_REFCNT_ATOMIC
 
 static struct rte_mempool *refcnt_pool = NULL;
 static struct rte_ring *refcnt_mbuf_ring = NULL;
@@ -125,6 +128,10 @@ static unsigned refcnt_lcore[RTE_MAX_LCORE];
  *    - Repeat the test to check that allocation operations
  *      reinitialize the mbuf correctly.
  *
+ * #. Test packet cloning
+ *    - Clone a mbuf and verify the data
+ *    - Clone the cloned mbuf and verify the data
+ *    - Attach a mbuf to another that does not have the same priv_size.
  */
 
 #define GOTO_FAIL(str, ...) do {					\
@@ -272,8 +279,8 @@ test_one_pktmbuf(void)
 		GOTO_FAIL("Buffer should be continuous");
 	memset(hdr, 0x55, MBUF_TEST_HDR2_LEN);
 
-	rte_mbuf_sanity_check(m, RTE_MBUF_PKT, 1);
-	rte_mbuf_sanity_check(m, RTE_MBUF_PKT, 0);
+	rte_mbuf_sanity_check(m, 1);
+	rte_mbuf_sanity_check(m, 0);
 	rte_pktmbuf_dump(stdout, m, 0);
 
 	/* this prepend should fail */
@@ -320,97 +327,212 @@ fail:
 	return -1;
 }
 
-/*
- * test control mbuf
- */
 static int
-test_one_ctrlmbuf(void)
+testclone_testupdate_testdetach(void)
 {
 	struct rte_mbuf *m = NULL;
-	char message[] = "This is a message carried by a ctrlmbuf";
-
-	printf("Test ctrlmbuf API\n");
+	struct rte_mbuf *clone = NULL;
+	struct rte_mbuf *clone2 = NULL;
+	unaligned_uint32_t *data;
 
 	/* alloc a mbuf */
-
-	m = rte_ctrlmbuf_alloc(ctrlmbuf_pool);
+	m = rte_pktmbuf_alloc(pktmbuf_pool);
 	if (m == NULL)
-		GOTO_FAIL("Cannot allocate mbuf");
-	if (rte_ctrlmbuf_len(m) != 0)
+		GOTO_FAIL("ooops not allocating mbuf");
+
+	if (rte_pktmbuf_pkt_len(m) != 0)
 		GOTO_FAIL("Bad length");
 
-	/* set data */
-	rte_ctrlmbuf_data(m) = &message;
-	rte_ctrlmbuf_len(m) = sizeof(message);
+	rte_pktmbuf_append(m, sizeof(uint32_t));
+	data = rte_pktmbuf_mtod(m, unaligned_uint32_t *);
+	*data = MAGIC_DATA;
 
-	/* read data */
-	if (rte_ctrlmbuf_data(m) != message)
-		GOTO_FAIL("Invalid data pointer");
-	if (rte_ctrlmbuf_len(m) != sizeof(message))
-		GOTO_FAIL("Invalid len");
+	/* clone the allocated mbuf */
+	clone = rte_pktmbuf_clone(m, pktmbuf_pool);
+	if (clone == NULL)
+		GOTO_FAIL("cannot clone data\n");
 
-	rte_mbuf_sanity_check(m, RTE_MBUF_CTRL, 0);
+	data = rte_pktmbuf_mtod(clone, unaligned_uint32_t *);
+	if (*data != MAGIC_DATA)
+		GOTO_FAIL("invalid data in clone\n");
+
+	if (rte_mbuf_refcnt_read(m) != 2)
+		GOTO_FAIL("invalid refcnt in m\n");
+
+	/* free the clone */
+	rte_pktmbuf_free(clone);
+	clone = NULL;
+
+	/* same test with a chained mbuf */
+	m->next = rte_pktmbuf_alloc(pktmbuf_pool);
+	if (m->next == NULL)
+		GOTO_FAIL("Next Pkt Null\n");
+
+	rte_pktmbuf_append(m->next, sizeof(uint32_t));
+	data = rte_pktmbuf_mtod(m->next, unaligned_uint32_t *);
+	*data = MAGIC_DATA;
+
+	clone = rte_pktmbuf_clone(m, pktmbuf_pool);
+	if (clone == NULL)
+		GOTO_FAIL("cannot clone data\n");
+
+	data = rte_pktmbuf_mtod(clone, unaligned_uint32_t *);
+	if (*data != MAGIC_DATA)
+		GOTO_FAIL("invalid data in clone\n");
+
+	data = rte_pktmbuf_mtod(clone->next, unaligned_uint32_t *);
+	if (*data != MAGIC_DATA)
+		GOTO_FAIL("invalid data in clone->next\n");
+
+	if (rte_mbuf_refcnt_read(m) != 2)
+		GOTO_FAIL("invalid refcnt in m\n");
+
+	if (rte_mbuf_refcnt_read(m->next) != 2)
+		GOTO_FAIL("invalid refcnt in m->next\n");
+
+	/* try to clone the clone */
+
+	clone2 = rte_pktmbuf_clone(clone, pktmbuf_pool);
+	if (clone2 == NULL)
+		GOTO_FAIL("cannot clone the clone\n");
+
+	data = rte_pktmbuf_mtod(clone2, unaligned_uint32_t *);
+	if (*data != MAGIC_DATA)
+		GOTO_FAIL("invalid data in clone2\n");
+
+	data = rte_pktmbuf_mtod(clone2->next, unaligned_uint32_t *);
+	if (*data != MAGIC_DATA)
+		GOTO_FAIL("invalid data in clone2->next\n");
+
+	if (rte_mbuf_refcnt_read(m) != 3)
+		GOTO_FAIL("invalid refcnt in m\n");
+
+	if (rte_mbuf_refcnt_read(m->next) != 3)
+		GOTO_FAIL("invalid refcnt in m->next\n");
 
 	/* free mbuf */
-	rte_ctrlmbuf_free(m);
+	rte_pktmbuf_free(m);
+	rte_pktmbuf_free(clone);
+	rte_pktmbuf_free(clone2);
+
 	m = NULL;
+	clone = NULL;
+	clone2 = NULL;
+	printf("%s ok\n", __func__);
 	return 0;
 
 fail:
 	if (m)
-		rte_ctrlmbuf_free(m);
+		rte_pktmbuf_free(m);
+	if (clone)
+		rte_pktmbuf_free(clone);
+	if (clone2)
+		rte_pktmbuf_free(clone2);
 	return -1;
 }
 
 static int
-testclone_testupdate_testdetach(void)
+test_attach_from_different_pool(void)
 {
-#ifndef RTE_MBUF_SCATTER_GATHER
-	return 0;
-#else
-	struct rte_mbuf *mc = NULL;
+	struct rte_mbuf *m = NULL;
 	struct rte_mbuf *clone = NULL;
+	struct rte_mbuf *clone2 = NULL;
+	char *data, *c_data, *c_data2;
 
 	/* alloc a mbuf */
+	m = rte_pktmbuf_alloc(pktmbuf_pool);
+	if (m == NULL)
+		GOTO_FAIL("cannot allocate mbuf");
 
-	mc = rte_pktmbuf_alloc(pktmbuf_pool);
-	if (mc == NULL)
-		GOTO_FAIL("ooops not allocating mbuf");
-
-	if (rte_pktmbuf_pkt_len(mc) != 0)
+	if (rte_pktmbuf_pkt_len(m) != 0)
 		GOTO_FAIL("Bad length");
 
+	data = rte_pktmbuf_mtod(m, char *);
 
-	/* clone the allocated mbuf */
-	clone = rte_pktmbuf_clone(mc, pktmbuf_pool);
+	/* allocate a new mbuf from the second pool, and attach it to the first
+	 * mbuf */
+	clone = rte_pktmbuf_alloc(pktmbuf_pool2);
 	if (clone == NULL)
-		GOTO_FAIL("cannot clone data\n");
+		GOTO_FAIL("cannot allocate mbuf from second pool\n");
+
+	/* check data room size and priv size, and erase priv */
+	if (rte_pktmbuf_data_room_size(clone->pool) != 0)
+		GOTO_FAIL("data room size should be 0\n");
+	if (rte_pktmbuf_priv_size(clone->pool) != MBUF2_PRIV_SIZE)
+		GOTO_FAIL("data room size should be %d\n", MBUF2_PRIV_SIZE);
+	memset(clone + 1, 0, MBUF2_PRIV_SIZE);
+
+	/* save data pointer to compare it after detach() */
+	c_data = rte_pktmbuf_mtod(clone, char *);
+	if (c_data != (char *)clone + sizeof(*clone) + MBUF2_PRIV_SIZE)
+		GOTO_FAIL("bad data pointer in clone");
+	if (rte_pktmbuf_headroom(clone) != 0)
+		GOTO_FAIL("bad headroom in clone");
+
+	rte_pktmbuf_attach(clone, m);
+
+	if (rte_pktmbuf_mtod(clone, char *) != data)
+		GOTO_FAIL("clone was not attached properly\n");
+	if (rte_pktmbuf_headroom(clone) != RTE_PKTMBUF_HEADROOM)
+		GOTO_FAIL("bad headroom in clone after attach");
+	if (rte_mbuf_refcnt_read(m) != 2)
+		GOTO_FAIL("invalid refcnt in m\n");
+
+	/* allocate a new mbuf from the second pool, and attach it to the first
+	 * cloned mbuf */
+	clone2 = rte_pktmbuf_alloc(pktmbuf_pool2);
+	if (clone2 == NULL)
+		GOTO_FAIL("cannot allocate clone2 from second pool\n");
+
+	/* check data room size and priv size, and erase priv */
+	if (rte_pktmbuf_data_room_size(clone2->pool) != 0)
+		GOTO_FAIL("data room size should be 0\n");
+	if (rte_pktmbuf_priv_size(clone2->pool) != MBUF2_PRIV_SIZE)
+		GOTO_FAIL("data room size should be %d\n", MBUF2_PRIV_SIZE);
+	memset(clone2 + 1, 0, MBUF2_PRIV_SIZE);
+
+	/* save data pointer to compare it after detach() */
+	c_data2 = rte_pktmbuf_mtod(clone2, char *);
+	if (c_data2 != (char *)clone2 + sizeof(*clone2) + MBUF2_PRIV_SIZE)
+		GOTO_FAIL("bad data pointer in clone2");
+	if (rte_pktmbuf_headroom(clone2) != 0)
+		GOTO_FAIL("bad headroom in clone2");
+
+	rte_pktmbuf_attach(clone2, clone);
+
+	if (rte_pktmbuf_mtod(clone2, char *) != data)
+		GOTO_FAIL("clone2 was not attached properly\n");
+	if (rte_pktmbuf_headroom(clone2) != RTE_PKTMBUF_HEADROOM)
+		GOTO_FAIL("bad headroom in clone2 after attach");
+	if (rte_mbuf_refcnt_read(m) != 3)
+		GOTO_FAIL("invalid refcnt in m\n");
+
+	/* detach the clones */
+	rte_pktmbuf_detach(clone);
+	if (c_data != rte_pktmbuf_mtod(clone, char *))
+		GOTO_FAIL("clone was not detached properly\n");
+
+	rte_pktmbuf_detach(clone2);
+	if (c_data2 != rte_pktmbuf_mtod(clone2, char *))
+		GOTO_FAIL("clone2 was not detached properly\n");
+
+	/* free the clones and the initial mbuf */
+	rte_pktmbuf_free(clone2);
 	rte_pktmbuf_free(clone);
-
-	mc->pkt.next = rte_pktmbuf_alloc(pktmbuf_pool);
-	if(mc->pkt.next == NULL)
-		GOTO_FAIL("Next Pkt Null\n");
-
-	clone = rte_pktmbuf_clone(mc, pktmbuf_pool);
-	if (clone == NULL)
-		GOTO_FAIL("cannot clone data\n");
-
-	/* free mbuf */
-	rte_pktmbuf_free(mc);
-	rte_pktmbuf_free(clone);
-	mc = NULL;
-	clone = NULL;
+	rte_pktmbuf_free(m);
+	printf("%s ok\n", __func__);
 	return 0;
 
 fail:
-	if (mc)
-		rte_pktmbuf_free(mc);
+	if (m)
+		rte_pktmbuf_free(m);
+	if (clone)
+		rte_pktmbuf_free(clone);
+	if (clone2)
+		rte_pktmbuf_free(clone2);
 	return -1;
-#endif /* RTE_MBUF_SCATTER_GATHER */
 }
 #undef GOTO_FAIL
-
-
 
 /*
  * test allocation and free of mbufs
@@ -439,13 +561,11 @@ test_pktmbuf_pool(void)
 		printf("Error pool not empty");
 		ret = -1;
 	}
-#ifdef RTE_MBUF_SCATTER_GATHER
 	extra = rte_pktmbuf_clone(m[0], pktmbuf_pool);
 	if(extra != NULL) {
 		printf("Error pool not empty");
 		ret = -1;
 	}
-#endif
 	/* free them */
 	for (i=0; i<NB_MBUF; i++) {
 		if (m[i] != NULL)
@@ -474,8 +594,9 @@ test_pktmbuf_pool_ptr(void)
 		if (m[i] == NULL) {
 			printf("rte_pktmbuf_alloc() failed (%u)\n", i);
 			ret = -1;
+			break;
 		}
-		m[i]->pkt.data = RTE_PTR_ADD(m[i]->pkt.data, 64);
+		m[i]->data_off += 64;
 	}
 
 	/* free them */
@@ -493,9 +614,10 @@ test_pktmbuf_pool_ptr(void)
 		if (m[i] == NULL) {
 			printf("rte_pktmbuf_alloc() failed (%u)\n", i);
 			ret = -1;
+			break;
 		}
-		if (m[i]->pkt.data != RTE_PTR_ADD(m[i]->buf_addr, RTE_PKTMBUF_HEADROOM)) {
-			printf ("pkt.data pointer not set properly\n");
+		if (m[i]->data_off != RTE_PKTMBUF_HEADROOM) {
+			printf("invalid data_off\n");
 			ret = -1;
 		}
 	}
@@ -536,7 +658,7 @@ test_pktmbuf_free_segment(void)
 			mb = m[i];
 			while(mb != NULL) {
 				mt = mb;
-				mb = mb->pkt.next;
+				mb = mb->next;
 				rte_pktmbuf_free_seg(mt);
 			}
 		}
@@ -547,12 +669,11 @@ test_pktmbuf_free_segment(void)
 
 /*
  * Stress test for rte_mbuf atomic refcnt.
- * Implies that:
- * RTE_MBUF_SCATTER_GATHER and RTE_MBUF_REFCNT_ATOMIC are both defined.
+ * Implies that RTE_MBUF_REFCNT_ATOMIC is defined.
  * For more efficency, recomended to run with RTE_LIBRTE_MBUF_DEBUG defined.
  */
 
-#if defined RTE_MBUF_SCATTER_GATHER  && defined RTE_MBUF_REFCNT_ATOMIC
+#ifdef RTE_MBUF_REFCNT_ATOMIC
 
 static int
 test_refcnt_slave(__attribute__((unused)) void *arg)
@@ -657,7 +778,7 @@ test_refcnt_master(void)
 static int
 test_refcnt_mbuf(void)
 {
-#if defined RTE_MBUF_SCATTER_GATHER  && defined RTE_MBUF_REFCNT_ATOMIC
+#ifdef RTE_MBUF_REFCNT_ATOMIC
 
 	unsigned lnum, master, slave, tref;
 
@@ -673,12 +794,10 @@ test_refcnt_mbuf(void)
 	/* create refcnt pool & ring if they don't exist */
 
 	if (refcnt_pool == NULL &&
-			(refcnt_pool = rte_mempool_create(
-			MAKE_STRING(refcnt_pool),
-			REFCNT_MBUF_NUM, REFCNT_MBUF_SIZE, 0,
-			sizeof(struct rte_pktmbuf_pool_private),
-			rte_pktmbuf_pool_init, NULL, rte_pktmbuf_init, NULL,
-			SOCKET_ID_ANY, 0)) == NULL) {
+			(refcnt_pool = rte_pktmbuf_pool_create(
+				MAKE_STRING(refcnt_pool),
+				REFCNT_MBUF_NUM, 0, 0, 0,
+				SOCKET_ID_ANY)) == NULL) {
 		printf("%s: cannot allocate " MAKE_STRING(refcnt_pool) "\n",
 		    __func__);
 		return (-1);
@@ -720,21 +839,10 @@ test_refcnt_mbuf(void)
 	return (0);
 }
 
-#ifdef RTE_EXEC_ENV_BAREMETAL
-
-/* baremetal - don't test failing sanity checks */
-static int
-test_failing_mbuf_sanity_check(void)
-{
-	return 0;
-}
-
-#else
-
 #include <unistd.h>
 #include <sys/wait.h>
 
-/* linuxapp - use fork() to test mbuf errors panic */
+/* use fork() to test mbuf errors panic */
 static int
 verify_mbuf_check_panics(struct rte_mbuf *buf)
 {
@@ -744,7 +852,7 @@ verify_mbuf_check_panics(struct rte_mbuf *buf)
 	pid = fork();
 
 	if (pid == 0) {
-		rte_mbuf_sanity_check(buf, RTE_MBUF_PKT, 1); /* should panic */
+		rte_mbuf_sanity_check(buf, 1); /* should panic */
 		exit(0);  /* return normally if it doesn't panic */
 	} else if (pid < 0){
 		printf("Fork Failed\n");
@@ -781,13 +889,6 @@ test_failing_mbuf_sanity_check(void)
 	}
 
 	badbuf = *buf;
-	badbuf.type = (uint8_t)-1;
-	if (verify_mbuf_check_panics(&badbuf)) {
-		printf("Error with bad-type mbuf test\n");
-		return -1;
-	}
-
-	badbuf = *buf;
 	badbuf.pool = NULL;
 	if (verify_mbuf_check_panics(&badbuf)) {
 		printf("Error with bad-pool mbuf test\n");
@@ -808,7 +909,6 @@ test_failing_mbuf_sanity_check(void)
 		return -1;
 	}
 
-#ifdef RTE_MBUF_SCATTER_GATHER
 	badbuf = *buf;
 	badbuf.refcnt = 0;
 	if (verify_mbuf_check_panics(&badbuf)) {
@@ -822,30 +922,35 @@ test_failing_mbuf_sanity_check(void)
 		printf("Error with bad-refcnt(MAX) mbuf test\n");
 		return -1;
 	}
-#endif
 
 	return 0;
 }
-#endif
 
 
-int
+static int
 test_mbuf(void)
 {
-	RTE_BUILD_BUG_ON(sizeof(struct rte_mbuf) != 64);
+	RTE_BUILD_BUG_ON(sizeof(struct rte_mbuf) != RTE_CACHE_LINE_SIZE * 2);
 
 	/* create pktmbuf pool if it does not exist */
 	if (pktmbuf_pool == NULL) {
-		pktmbuf_pool =
-			rte_mempool_create("test_pktmbuf_pool", NB_MBUF,
-					   MBUF_SIZE, 32,
-					   sizeof(struct rte_pktmbuf_pool_private),
-					   rte_pktmbuf_pool_init, NULL,
-					   rte_pktmbuf_init, NULL,
-					   SOCKET_ID_ANY, 0);
+		pktmbuf_pool = rte_pktmbuf_pool_create("test_pktmbuf_pool",
+			NB_MBUF, 32, 0, MBUF_DATA_SIZE, SOCKET_ID_ANY);
 	}
 
 	if (pktmbuf_pool == NULL) {
+		printf("cannot allocate mbuf pool\n");
+		return -1;
+	}
+
+	/* create a specific pktmbuf pool with a priv_size != 0 and no data
+	 * room size */
+	if (pktmbuf_pool2 == NULL) {
+		pktmbuf_pool2 = rte_pktmbuf_pool_create("test_pktmbuf_pool2",
+			NB_MBUF, 32, MBUF2_PRIV_SIZE, 0, SOCKET_ID_ANY);
+	}
+
+	if (pktmbuf_pool2 == NULL) {
 		printf("cannot allocate mbuf pool\n");
 		return -1;
 	}
@@ -889,22 +994,6 @@ test_mbuf(void)
 		return -1;
 	}
 
-	/* create ctrlmbuf pool if it does not exist */
-	if (ctrlmbuf_pool == NULL) {
-		ctrlmbuf_pool =
-			rte_mempool_create("test_ctrlmbuf_pool", NB_MBUF,
-					   sizeof(struct rte_mbuf), 32, 0,
-					   NULL, NULL,
-					   rte_ctrlmbuf_init, NULL,
-					   SOCKET_ID_ANY, 0);
-	}
-
-	/* test control mbuf */
-	if (test_one_ctrlmbuf() < 0) {
-		printf("test_one_ctrlmbuf() failed\n");
-		return -1;
-	}
-
 	/* test free pktmbuf segment one by one */
 	if (test_pktmbuf_free_segment() < 0) {
 		printf("test_pktmbuf_free_segment() failed.\n");
@@ -913,6 +1002,11 @@ test_mbuf(void)
 
 	if (testclone_testupdate_testdetach()<0){
 		printf("testclone_and_testupdate() failed \n");
+		return -1;
+	}
+
+	if (test_attach_from_different_pool() < 0) {
+		printf("test_attach_from_different_pool() failed\n");
 		return -1;
 	}
 
@@ -927,3 +1021,9 @@ test_mbuf(void)
 	}
 	return 0;
 }
+
+static struct test_command mbuf_cmd = {
+	.command = "mbuf_autotest",
+	.callback = test_mbuf,
+};
+REGISTER_TEST_COMMAND(mbuf_cmd);

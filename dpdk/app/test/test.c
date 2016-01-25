@@ -51,7 +51,6 @@ extern cmdline_parse_ctx_t main_ctx[];
 
 #include <rte_memory.h>
 #include <rte_memzone.h>
-#include <rte_tailq.h>
 #include <rte_eal.h>
 #include <rte_cycles.h>
 #include <rte_log.h>
@@ -66,7 +65,6 @@ extern cmdline_parse_ctx_t main_ctx[];
 
 const char *prgname; /* to be set to argv[0] */
 
-#ifndef RTE_EXEC_ENV_BAREMETAL
 static const char *recursive_call; /* used in linuxapp for MP and other tests */
 
 static int
@@ -82,6 +80,7 @@ do_recursive_call(void)
 	} actions[] =  {
 			{ "run_secondary_instances", test_mp_secondary },
 			{ "test_missing_c_flag", no_action },
+			{ "test_master_lcore_flag", no_action },
 			{ "test_missing_n_flag", no_action },
 			{ "test_no_hpet_flag", no_action },
 			{ "test_whitelist_flag", no_action },
@@ -96,7 +95,9 @@ do_recursive_call(void)
 			{ "test_memory_flags", no_action },
 			{ "test_file_prefix", no_action },
 			{ "test_no_huge_flag", no_action },
+#ifdef RTE_LIBRTE_IVSHMEM
 			{ "test_ivshmem", test_ivshmem },
+#endif
 	};
 
 	if (recursive_call == NULL)
@@ -108,7 +109,6 @@ do_recursive_call(void)
 	printf("ERROR - missing action to take for %s\n", recursive_call);
 	return -1;
 }
-#endif
 
 int
 main(int argc, char **argv)
@@ -126,14 +126,15 @@ main(int argc, char **argv)
 	rte_timer_subsystem_init();
 #endif
 
+	if (commands_init() < 0)
+		return -1;
+
 	argv += ret;
 
 	prgname = argv[0];
 
-#ifndef RTE_EXEC_ENV_BAREMETAL
 	if ((recursive_call = getenv(RECURSIVE_ENV_VAR)) != NULL)
 		return do_recursive_call();
-#endif
 
 #ifdef RTE_LIBEAL_USE_HPET
 	if (rte_eal_hpet_init(1) < 0)

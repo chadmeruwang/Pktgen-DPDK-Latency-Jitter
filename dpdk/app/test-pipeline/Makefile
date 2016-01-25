@@ -1,6 +1,6 @@
 #   BSD LICENSE
 #
-#   Copyright(c) 2010-2014 Intel Corporation. All rights reserved.
+#   Copyright(c) 2010-2015 Intel Corporation. All rights reserved.
 #   All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,8 @@
 
 include $(RTE_SDK)/mk/rte.vars.mk
 
+ifeq ($(CONFIG_RTE_LIBRTE_PIPELINE),y)
+
 #
 # library name
 #
@@ -39,28 +41,24 @@ APP = testpipeline
 CFLAGS += -O3
 CFLAGS += $(WERROR_FLAGS)
 
-ifeq ($(CONFIG_RTE_LIBRTE_PMD_PCAP),y)
-LDFLAGS += -lpcap
-endif
-
 #
 # all source are stored in SRCS-y
 #
-SRCS-$(CONFIG_RTE_LIBRTE_PIPELINE) := main.c
-SRCS-$(CONFIG_RTE_LIBRTE_PIPELINE) += config.c
-SRCS-$(CONFIG_RTE_LIBRTE_PIPELINE) += init.c
-SRCS-$(CONFIG_RTE_LIBRTE_PIPELINE) += runtime.c
-SRCS-$(CONFIG_RTE_LIBRTE_PIPELINE) += pipeline_stub.c
-SRCS-$(CONFIG_RTE_LIBRTE_PIPELINE) += pipeline_hash.c
-SRCS-$(CONFIG_RTE_LIBRTE_PIPELINE) += pipeline_lpm.c
-SRCS-$(CONFIG_RTE_LIBRTE_PIPELINE) += pipeline_lpm_ipv6.c
+SRCS-y := main.c
+SRCS-y += config.c
+SRCS-y += init.c
+SRCS-y += runtime.c
+SRCS-y += pipeline_stub.c
+SRCS-y += pipeline_hash.c
+SRCS-y += pipeline_lpm.c
+SRCS-y += pipeline_lpm_ipv6.c
 
 # include ACL lib if available
-ifeq ($(CONFIG_RTE_LIBRTE_ACL),y)
-SRCS-$(CONFIG_RTE_LIBRTE_PIPELINE) += pipeline_acl.c
-endif
+SRCS-$(CONFIG_RTE_LIBRTE_ACL) += pipeline_acl.c
 
 # this application needs libraries first
-DEPDIRS-$(CONFIG_RTE_LIBRTE_PIPELINE) += lib
+DEPDIRS-y += lib drivers
 
 include $(RTE_SDK)/mk/rte.app.mk
+
+endif

@@ -54,7 +54,6 @@
 #include <rte_memory.h>
 #include <rte_memzone.h>
 #include <rte_launch.h>
-#include <rte_tailq.h>
 #include <rte_eal.h>
 #include <rte_eal_memconfig.h>
 #include <rte_per_lcore.h>
@@ -87,7 +86,7 @@ xen_get_virtual_area(size_t *size, size_t mem_size)
 	int fd;
 	long aligned_addr;
 
-	RTE_LOG(INFO, EAL, "Ask a virtual area of 0x%zu bytes\n", *size);
+	RTE_LOG(DEBUG, EAL, "Ask a virtual area of 0x%zu bytes\n", *size);
 
 	fd = open("/dev/zero", O_RDONLY);
 	if (fd < 0){
@@ -103,7 +102,7 @@ xen_get_virtual_area(size_t *size, size_t mem_size)
 
 	if (addr == MAP_FAILED) {
 		close(fd);
-		RTE_LOG(INFO, EAL, "Cannot get a virtual area\n");
+		RTE_LOG(ERR, EAL, "Cannot get a virtual area\n");
 		return NULL;
 	}
 
@@ -115,7 +114,7 @@ xen_get_virtual_area(size_t *size, size_t mem_size)
 	aligned_addr = RTE_ALIGN_CEIL(aligned_addr, mem_size);
         addr = (void *)(aligned_addr);
 
-	RTE_LOG(INFO, EAL, "Virtual area found at %p (size = 0x%zx)\n",
+	RTE_LOG(DEBUG, EAL, "Virtual area found at %p (size = 0x%zx)\n",
 		addr, *size);
 
 	return addr;

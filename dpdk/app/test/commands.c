@@ -56,7 +56,6 @@
 #include <rte_memzone.h>
 #include <rte_launch.h>
 #include <rte_cycles.h>
-#include <rte_tailq.h>
 #include <rte_eal.h>
 #include <rte_per_lcore.h>
 #include <rte_lcore.h>
@@ -78,6 +77,15 @@
 
 /****************/
 
+static struct test_commands_list commands_list =
+	TAILQ_HEAD_INITIALIZER(commands_list);
+
+void
+add_test_command(struct test_command *t)
+{
+	TAILQ_INSERT_TAIL(&commands_list, t, next);
+}
+
 struct cmd_autotest_result {
 	cmdline_fixed_string_t autotest;
 };
@@ -86,124 +94,14 @@ static void cmd_autotest_parsed(void *parsed_result,
 				__attribute__((unused)) struct cmdline *cl,
 				__attribute__((unused)) void *data)
 {
+	struct test_command *t;
 	struct cmd_autotest_result *res = parsed_result;
 	int ret = 0;
 
-	if (!strcmp(res->autotest, "version_autotest"))
-		ret = test_version();
-	if (!strcmp(res->autotest, "eal_fs_autotest"))
-		ret = test_eal_fs();
-	if (!strcmp(res->autotest, "debug_autotest"))
-		ret = test_debug();
-	if (!strcmp(res->autotest, "pci_autotest"))
-		ret = test_pci();
-	if (!strcmp(res->autotest, "prefetch_autotest"))
-		ret = test_prefetch();
-	if (!strcmp(res->autotest, "byteorder_autotest"))
-		ret = test_byteorder();
-	if (!strcmp(res->autotest, "per_lcore_autotest"))
-		ret = test_per_lcore();
-	if (!strcmp(res->autotest, "atomic_autotest"))
-		ret = test_atomic();
-	if (!strcmp(res->autotest, "malloc_autotest"))
-		ret = test_malloc();
-	if (!strcmp(res->autotest, "spinlock_autotest"))
-		ret = test_spinlock();
-	if (!strcmp(res->autotest, "memory_autotest"))
-		ret = test_memory();
-	if (!strcmp(res->autotest, "memzone_autotest"))
-		ret = test_memzone();
-	if (!strcmp(res->autotest, "rwlock_autotest"))
-		ret = test_rwlock();
-	if (!strcmp(res->autotest, "mbuf_autotest"))
-		ret = test_mbuf();
-	if (!strcmp(res->autotest, "logs_autotest"))
-		ret = test_logs();
-	if (!strcmp(res->autotest, "errno_autotest"))
-		ret = test_errno();
-	if (!strcmp(res->autotest, "hash_autotest"))
-		ret = test_hash();
-	if (!strcmp(res->autotest, "hash_perf_autotest"))
-		ret = test_hash_perf();
-	if (!strcmp(res->autotest, "lpm_autotest"))
-		ret = test_lpm();
-	if (!strcmp(res->autotest, "lpm6_autotest"))
-		ret = test_lpm6();
-	if (!strcmp(res->autotest, "cpuflags_autotest"))
-		ret = test_cpuflags();
-	if (!strcmp(res->autotest, "cmdline_autotest"))
-		ret = test_cmdline();
-	if (!strcmp(res->autotest, "tailq_autotest"))
-		ret = test_tailq();
-	if (!strcmp(res->autotest, "multiprocess_autotest"))
-		ret = test_mp_secondary();
-	if (!strcmp(res->autotest, "memcpy_autotest"))
-		ret = test_memcpy();
-	if (!strcmp(res->autotest, "string_autotest"))
-		ret = test_string_fns();
-	if (!strcmp(res->autotest, "eal_flags_autotest"))
-		ret = test_eal_flags();
-	if (!strcmp(res->autotest, "alarm_autotest"))
-		ret = test_alarm();
-	if (!strcmp(res->autotest, "interrupt_autotest"))
-		ret = test_interrupt();
-	if (!strcmp(res->autotest, "cycles_autotest"))
-		ret = test_cycles();
-	if (!strcmp(res->autotest, "ring_autotest"))
-		ret = test_ring();
-	if (!strcmp(res->autotest, "table_autotest"))
-		ret = test_table();
-	if (!strcmp(res->autotest, "ring_perf_autotest"))
-		ret = test_ring_perf();
-	if (!strcmp(res->autotest, "timer_autotest"))
-		ret = test_timer();
-	if (!strcmp(res->autotest, "timer_perf_autotest"))
-		ret = test_timer_perf();
-#ifdef RTE_LIBRTE_PMD_BOND
-	if (!strcmp(res->autotest, "link_bonding_autotest"))
-		ret = test_link_bonding();
-#endif
-	if (!strcmp(res->autotest, "mempool_autotest"))
-		ret = test_mempool();
-	if (!strcmp(res->autotest, "mempool_perf_autotest"))
-		ret = test_mempool_perf();
-	if (!strcmp(res->autotest, "memcpy_perf_autotest"))
-		ret = test_memcpy_perf();
-	if (!strcmp(res->autotest, "func_reentrancy_autotest"))
-		ret = test_func_reentrancy();
-	if (!strcmp(res->autotest, "red_autotest"))
-		ret = test_red();
-	if (!strcmp(res->autotest, "sched_autotest"))
-		ret = test_sched();
-	if (!strcmp(res->autotest, "meter_autotest"))
-		ret = test_meter();
-	if (!strcmp(res->autotest, "kni_autotest"))
-		ret = test_kni();
-	if (!strcmp(res->autotest, "power_autotest"))
-		ret = test_power();
-	if (!strcmp(res->autotest, "common_autotest"))
-		ret = test_common();
-	if (!strcmp(res->autotest, "ivshmem_autotest"))
-		ret = test_ivshmem();
-	if (!strcmp(res->autotest, "distributor_autotest"))
-		ret = test_distributor();
-	if (!strcmp(res->autotest, "distributor_perf_autotest"))
-		ret = test_distributor_perf();
-	if (!strcmp(res->autotest, "devargs_autotest"))
-		ret = test_devargs();
-#ifdef RTE_LIBRTE_PMD_RING
-	if (!strcmp(res->autotest, "ring_pmd_autotest"))
-		ret = test_pmd_ring();
-#endif /* RTE_LIBRTE_PMD_RING */
-
-#ifdef RTE_LIBRTE_ACL
-	if (!strcmp(res->autotest, "acl_autotest"))
-		ret = test_acl();
-#endif /* RTE_LIBRTE_ACL */
-#ifdef RTE_LIBRTE_KVARGS
-	if (!strcmp(res->autotest, "kvargs_autotest"))
-		ret |= test_kvargs();
-#endif /* RTE_LIBRTE_KVARGS */
+	TAILQ_FOREACH(t, &commands_list, next) {
+		if (!strcmp(res->autotest, t->command))
+			ret = t->callback();
+	}
 
 	if (ret == 0)
 		printf("Test OK\n");
@@ -214,45 +112,7 @@ static void cmd_autotest_parsed(void *parsed_result,
 
 cmdline_parse_token_string_t cmd_autotest_autotest =
 	TOKEN_STRING_INITIALIZER(struct cmd_autotest_result, autotest,
-			"pci_autotest#memory_autotest#"
-			"per_lcore_autotest#spinlock_autotest#"
-			"rwlock_autotest#atomic_autotest#"
-			"byteorder_autotest#prefetch_autotest#"
-			"cycles_autotest#logs_autotest#"
-			"memzone_autotest#ring_autotest#"
-			"mempool_autotest#mbuf_autotest#"
-			"timer_autotest#malloc_autotest#"
-			"memcpy_autotest#hash_autotest#"
-			"lpm_autotest#debug_autotest#"
-			"lpm6_autotest#"
-			"errno_autotest#tailq_autotest#"
-			"string_autotest#multiprocess_autotest#"
-			"cpuflags_autotest#eal_flags_autotest#"
-			"alarm_autotest#interrupt_autotest#"
-			"version_autotest#eal_fs_autotest#"
-			"cmdline_autotest#func_reentrancy_autotest#"
-#ifdef RTE_LIBRTE_PMD_BOND
-			"link_bonding_autotest#"
-#endif
-			"mempool_perf_autotest#hash_perf_autotest#"
-			"memcpy_perf_autotest#ring_perf_autotest#"
-			"red_autotest#meter_autotest#sched_autotest#"
-			"memcpy_perf_autotest#kni_autotest#"
-			"pm_autotest#ivshmem_autotest#"
-			"devargs_autotest#table_autotest#"
-#ifdef RTE_LIBRTE_ACL
-			"acl_autotest#"
-#endif
-			"power_autotest#"
-			"timer_perf_autotest#"
-#ifdef RTE_LIBRTE_PMD_RING
-			"ring_pmd_autotest#"
-#endif
-#ifdef RTE_LIBRTE_KVARGS
-			"kvargs_autotest#"
-#endif
-			"common_autotest#"
-			"distributor_autotest#distributor_perf_autotest");
+				 "");
 
 cmdline_parse_inst_t cmd_autotest = {
 	.f = cmd_autotest_parsed,  /* function to call */
@@ -275,8 +135,6 @@ dump_struct_sizes(void)
 {
 #define DUMP_SIZE(t) printf("sizeof(" #t ") = %u\n", (unsigned)sizeof(t));
 	DUMP_SIZE(struct rte_mbuf);
-	DUMP_SIZE(struct rte_pktmbuf);
-	DUMP_SIZE(struct rte_ctrlmbuf);
 	DUMP_SIZE(struct rte_mempool);
 	DUMP_SIZE(struct rte_ring);
 #undef DUMP_SIZE
@@ -451,12 +309,147 @@ cmdline_parse_inst_t cmd_quit = {
 
 /****************/
 
+struct cmd_set_rxtx_result {
+	cmdline_fixed_string_t set;
+	cmdline_fixed_string_t mode;
+};
+
+static void cmd_set_rxtx_parsed(void *parsed_result, struct cmdline *cl,
+				__attribute__((unused)) void *data)
+{
+	struct cmd_set_rxtx_result *res = parsed_result;
+	if (test_set_rxtx_conf(res->mode) < 0)
+		cmdline_printf(cl, "Cannot find such mode\n");
+}
+
+cmdline_parse_token_string_t cmd_set_rxtx_set =
+	TOKEN_STRING_INITIALIZER(struct cmd_set_rxtx_result, set,
+				 "set_rxtx_mode");
+
+cmdline_parse_token_string_t cmd_set_rxtx_mode =
+	TOKEN_STRING_INITIALIZER(struct cmd_set_rxtx_result, mode, NULL);
+
+cmdline_parse_inst_t cmd_set_rxtx = {
+	.f = cmd_set_rxtx_parsed,  /* function to call */
+	.data = NULL,      /* 2nd arg of func */
+	.help_str = "set rxtx routine: "
+			"set_rxtx <mode>",
+	.tokens = {        /* token list, NULL terminated */
+		(void *)&cmd_set_rxtx_set,
+		(void *)&cmd_set_rxtx_mode,
+		NULL,
+	},
+};
+
+/****************/
+
+struct cmd_set_rxtx_anchor {
+	cmdline_fixed_string_t set;
+	cmdline_fixed_string_t type;
+};
+
+static void
+cmd_set_rxtx_anchor_parsed(void *parsed_result,
+			   struct cmdline *cl,
+			   __attribute__((unused)) void *data)
+{
+	struct cmd_set_rxtx_anchor *res = parsed_result;
+	if (test_set_rxtx_anchor(res->type) < 0)
+		cmdline_printf(cl, "Cannot find such anchor\n");
+}
+
+cmdline_parse_token_string_t cmd_set_rxtx_anchor_set =
+	TOKEN_STRING_INITIALIZER(struct cmd_set_rxtx_anchor, set,
+				 "set_rxtx_anchor");
+
+cmdline_parse_token_string_t cmd_set_rxtx_anchor_type =
+	TOKEN_STRING_INITIALIZER(struct cmd_set_rxtx_anchor, type, NULL);
+
+cmdline_parse_inst_t cmd_set_rxtx_anchor = {
+	.f = cmd_set_rxtx_anchor_parsed,  /* function to call */
+	.data = NULL,      /* 2nd arg of func */
+	.help_str = "set rxtx anchor: "
+			"set_rxtx_anchor <type>",
+	.tokens = {        /* token list, NULL terminated */
+		(void *)&cmd_set_rxtx_anchor_set,
+		(void *)&cmd_set_rxtx_anchor_type,
+		NULL,
+	},
+};
+
+/****************/
+
+/* for stream control */
+struct cmd_set_rxtx_sc {
+	cmdline_fixed_string_t set;
+	cmdline_fixed_string_t type;
+};
+
+static void
+cmd_set_rxtx_sc_parsed(void *parsed_result,
+			   struct cmdline *cl,
+			   __attribute__((unused)) void *data)
+{
+	struct cmd_set_rxtx_sc *res = parsed_result;
+	if (test_set_rxtx_sc(res->type) < 0)
+		cmdline_printf(cl, "Cannot find such stream control\n");
+}
+
+cmdline_parse_token_string_t cmd_set_rxtx_sc_set =
+	TOKEN_STRING_INITIALIZER(struct cmd_set_rxtx_sc, set,
+				 "set_rxtx_sc");
+
+cmdline_parse_token_string_t cmd_set_rxtx_sc_type =
+	TOKEN_STRING_INITIALIZER(struct cmd_set_rxtx_sc, type, NULL);
+
+cmdline_parse_inst_t cmd_set_rxtx_sc = {
+	.f = cmd_set_rxtx_sc_parsed,  /* function to call */
+	.data = NULL,      /* 2nd arg of func */
+	.help_str = "set rxtx stream control: "
+			"set_rxtx_sc <type>",
+	.tokens = {        /* token list, NULL terminated */
+		(void *)&cmd_set_rxtx_sc_set,
+		(void *)&cmd_set_rxtx_sc_type,
+		NULL,
+	},
+};
+
+/****************/
+
+
 cmdline_parse_ctx_t main_ctx[] = {
 	(cmdline_parse_inst_t *)&cmd_autotest,
 	(cmdline_parse_inst_t *)&cmd_dump,
 	(cmdline_parse_inst_t *)&cmd_dump_one,
 	(cmdline_parse_inst_t *)&cmd_set_ring,
 	(cmdline_parse_inst_t *)&cmd_quit,
+	(cmdline_parse_inst_t *)&cmd_set_rxtx,
+	(cmdline_parse_inst_t *)&cmd_set_rxtx_anchor,
+	(cmdline_parse_inst_t *)&cmd_set_rxtx_sc,
 	NULL,
 };
 
+int commands_init(void)
+{
+	struct test_command *t;
+	char *commands, *ptr;
+	int commands_len = 0;
+
+	TAILQ_FOREACH(t, &commands_list, next) {
+		commands_len += strlen(t->command) + 1;
+	}
+
+	commands = malloc(commands_len);
+	if (!commands)
+		return -1;
+
+	ptr = commands;
+	TAILQ_FOREACH(t, &commands_list, next) {
+		ptr += sprintf(ptr, "%s#", t->command);
+	}
+	ptr--;
+	ptr[0] = '\0';
+
+	cmd_autotest_autotest.string_data.str = commands;
+	return 0;
+}
