@@ -4,4 +4,9 @@ The installation process stays the same as the original Pktgen-DPDK. Please refe
 
 https://github.com/pktgen/Pktgen-DPDK
 
-for the process. 
+for installation.
+
+|-------| ------------- > |-----------|
+|pktgen |                 |l2fwd/l3fwd|
+|-------|<--------------- |-----------|                 
+                       
