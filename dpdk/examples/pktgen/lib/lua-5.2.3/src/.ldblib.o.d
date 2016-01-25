@@ -1,5 +1,5 @@
 dep_ldblib.o = ldblib.c \
- /root/ovs_dpdk/DPDK/x86_64-ivshmem-linuxapp-gcc/include/rte_config.h \
+ /root/Pktgen-DPDK-master/dpdk/x86_64-pktgen-linuxapp-gcc/include/rte_config.h \
  /usr/include/stdio.h /usr/include/features.h \
  /usr/include/x86_64-linux-gnu/bits/predefs.h \
  /usr/include/x86_64-linux-gnu/sys/cdefs.h \

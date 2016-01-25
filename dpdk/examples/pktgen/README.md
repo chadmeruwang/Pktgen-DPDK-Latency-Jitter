@@ -1,3 +1,4 @@
+this is an extended verion with jitter, latency measurements
 Pktgen version 2.7.7 using DPDK-1.7.1
 =====================================
 

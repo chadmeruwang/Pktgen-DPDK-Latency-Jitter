@@ -1,5 +1,5 @@
 dep_ldebug.o = ldebug.c \
- /root/ovs_dpdk/DPDK/x86_64-ivshmem-linuxapp-gcc/include/rte_config.h \
+ /root/Pktgen-DPDK-master/dpdk/x86_64-pktgen-linuxapp-gcc/include/rte_config.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.6/include/stdarg.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.6/include/stddef.h /usr/include/string.h \
  /usr/include/features.h /usr/include/x86_64-linux-gnu/bits/predefs.h \

@@ -1,5 +1,5 @@
 dep_lbitlib.o = lbitlib.c \
- /root/ovs_dpdk/DPDK/x86_64-ivshmem-linuxapp-gcc/include/rte_config.h \
+ /root/Pktgen-DPDK-master/dpdk/x86_64-pktgen-linuxapp-gcc/include/rte_config.h \
  lua.h /usr/lib/gcc/x86_64-linux-gnu/4.6/include/stdarg.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.6/include/stddef.h luaconf.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.6/include-fixed/limits.h \
