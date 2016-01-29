@@ -1,3 +1,15 @@
+
+
+
+
+ |     t1| ------------- > |           |
+ |pktgen |                 |l2fwd/l3fwd|
+ |     t2|<--------------- |           |                 
+
+In this verion of Pktgen-DPDK, you will see latency, jitter, timestamps in the console. An example test setup would be that the packet generator machine connects to another machine with DPDK l2fwd or l3fwd applications. The traffic generator sends the packets to l2fwd/l3fwd which then send the packets back to the packet generator. The end-to-end latency illustrated as t2-t1 and jitter (IPDV) will be measured and shown in the console. 
+
+
+
 Pktgen version 2.9.5 using DPDK-2.1.0
 =====================================
 
