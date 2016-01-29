@@ -7,7 +7,7 @@ In this verion of Pktgen-DPDK, you will see latency, jitter, timestamps in the c
 
  |-----t1|-------------->|-----------|
 
- |-pktgen|&nbsp;|l2fwd/l3fwd|
+ |-pktgen|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|l2fwd/l3fwd|
 
  |-----t2|<--------------|-----------|
 
