@@ -65,27 +65,6 @@
  */
 /* Created 2010 by Keith Wiles @ intel.com */
 
-/* The MIT License (MIT)
- *
- * Copyright 2015 AT&T Intellectual Property. All other rights reserved.
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF
- * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
- * THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-
 
 #include <stdint.h>
 
@@ -453,16 +432,18 @@ pktgen_packet_ctor(port_info_t * info, int32_t seq_idx, int32_t type, pkt_seq_t 
 
 	/* Add GRE header and adjust ether_hdr pointer if requested */
 	if (rte_atomic32_read(&info->port_flags) & SEND_GRE_IPv4_HEADER) {
-		ether_hdr = pktgen_gre_hdr_ctor(info, pkt, (greIp_t *)ether_hdr);
-	}
+	        ether_hdr = pktgen_gre_hdr_ctor(info, pkt, (greIp_t *)ether_hdr);
+		//ether_hdr = pktgen_gre_mpls_hdr_ctor(info, pkt, (greMPLS_t *)ether_hdr);
+        }
 	else if (rte_atomic32_read(&info->port_flags) & SEND_GRE_ETHER_HEADER) {
-		ether_hdr = pktgen_gre_ether_hdr_ctor(info, pkt, (greEther_t *)ether_hdr);
-	}
+	  //ether_hdr = pktgen_gre_ether_hdr_ctor(info, pkt, (greEther_t *)ether_hdr);
+	        ether_hdr = pktgen_gre_mpls_hdr_ctor(info, pkt, (greMPLS_t *)ether_hdr);
+        }
 
     if ( likely(pkt->ethType == ETHER_TYPE_IPv4) ) {
 
 		if ( likely(pkt->ipProto == PG_IPPROTO_TCP) ) {
-			tcpip_t	  * tip;
+		  tcpip_t	  * tip;
 
 			// Start from Ethernet header
 			tip = (tcpip_t *)ether_hdr;
