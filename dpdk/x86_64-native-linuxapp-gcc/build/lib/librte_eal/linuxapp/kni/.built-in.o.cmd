@@ -1,1 +1,0 @@
-cmd_/root/dpdk-2.1.0/x86_64-native-linuxapp-gcc/build/lib/librte_eal/linuxapp/kni/built-in.o :=  rm -f /root/dpdk-2.1.0/x86_64-native-linuxapp-gcc/build/lib/librte_eal/linuxapp/kni/built-in.o; ar rcsD /root/dpdk-2.1.0/x86_64-native-linuxapp-gcc/build/lib/librte_eal/linuxapp/kni/built-in.o
