@@ -457,8 +457,8 @@ pktgen_packet_ctor(port_info_t * info, int32_t seq_idx, int32_t type, pkt_seq_t 
 		//ether_hdr = pktgen_gre_mpls_hdr_ctor(info, pkt, (greMPLS_t *)ether_hdr);
         }
 	else if (rte_atomic32_read(&info->port_flags) & SEND_GRE_ETHER_HEADER) {
-	  //ether_hdr = pktgen_gre_ether_hdr_ctor(info, pkt, (greEther_t *)ether_hdr);
-	        ether_hdr = pktgen_gre_mpls_hdr_ctor(info, pkt, (greMPLS_t *)ether_hdr);
+	        ether_hdr = pktgen_gre_ether_hdr_ctor(info, pkt, (greEther_t *)ether_hdr);
+	        //ether_hdr = pktgen_gre_mpls_hdr_ctor(info, pkt, (greMPLS_t *)ether_hdr);
         }
 
     if ( likely(pkt->ethType == ETHER_TYPE_IPv4) ) {
