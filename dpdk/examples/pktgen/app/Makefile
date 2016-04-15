@@ -58,7 +58,7 @@ MYLIBS := -L$(RTE_SRCDIR)/../lib/$(LUA_DIR)/src/lib/$(LUA_DIR)/src/$(RTE_TARGET)
 		-L$(RTE_SRCDIR)/../lib/common/lib/common/$(RTE_TARGET) -llua -lcommon
 
 
-CFLAGS += -O3 -g $(WERROR_FLAGS) -fno-stack-protector
+CFLAGS += -O0 -g $(WERROR_FLAGS) -fno-stack-protector
 CFLAGS += -I$(RTE_SRCDIR) -I$(RTE_SRCDIR)/../lib/common
 CFLAGS += -I$(RTE_SRCDIR)/../lib/$(LUA_DIR)/src
 LDFLAGS += -g -lpcap $(MYLIBS)
