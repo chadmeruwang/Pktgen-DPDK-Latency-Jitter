@@ -1,0 +1,1 @@
+cmd_testhost.o = gcc -Wp,-MD,./.testhost.o.d.tmp -I/root/FLOSS/Pktgen-DPDK-Latency-Jitter/1.7.0/dpdk/scripts/testhost   -o testhost.o -c /root/FLOSS/Pktgen-DPDK-Latency-Jitter/1.7.0/dpdk/scripts/testhost/testhost.c 

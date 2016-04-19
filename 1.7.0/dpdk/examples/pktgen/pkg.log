@@ -1,0 +1,53 @@
+II 2014-09-11 12:36:12.580 [pktgen-main.c:430(main)] >>> Packet Burst 16, RX Desc 256, TX Desc 256, mbufs/port 2048, mbuf cache 256
+II 2014-09-11 12:36:12.580 [pktgen-port-cfg.c:222(pktgen_config_ports)] Configuring 4 ports, MBUF Size 1984, MBUF Cache Size 256
+II 2014-09-11 12:36:12.580 [pktgen-port-cfg.c:281(pktgen_config_ports)] Initialize Port 0 -- TxQ 1, RxQ 1,  Src MAC a0:36:9f:28:13:dc
+II 2014-09-11 12:36:12.580 [pktgen-port-cfg.c:156(pktgen_mbuf_pool_create)]     Create: Default RX  0:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB
+II 2014-09-11 12:36:12.581 [pktgen-port-cfg.c:302(pktgen_config_ports)] 
+II 2014-09-11 12:36:12.581 [pktgen-port-cfg.c:156(pktgen_mbuf_pool_create)]     Create: Default TX  0:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB
+II 2014-09-11 12:36:12.582 [pktgen-port-cfg.c:156(pktgen_mbuf_pool_create)]     Create: Range TX    0:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB
+II 2014-09-11 12:36:12.583 [pktgen-port-cfg.c:156(pktgen_mbuf_pool_create)]     Create: Sequence TX 0:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB
+II 2014-09-11 12:36:12.583 [pktgen-port-cfg.c:156(pktgen_mbuf_pool_create)]     Create: Special TX  0:0  - Memory used (MBUFs   64 x (size 1984 + Hdr 64)) + 790720 =    901 KB
+II 2014-09-11 12:36:12.584 [pktgen-port-cfg.c:346(pktgen_config_ports)] 
+II 2014-09-11 12:36:12.584 [pktgen-port-cfg.c:348(pktgen_config_ports)]                                                                        Port memory used =  20373 KB
+II 2014-09-11 12:36:12.584 [pktgen-port-cfg.c:281(pktgen_config_ports)] Initialize Port 1 -- TxQ 1, RxQ 1,  Src MAC a0:36:9f:28:13:de
+II 2014-09-11 12:36:12.584 [pktgen-port-cfg.c:156(pktgen_mbuf_pool_create)]     Create: Default RX  1:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB
+II 2014-09-11 12:36:12.584 [pktgen-port-cfg.c:302(pktgen_config_ports)] 
+II 2014-09-11 12:36:12.584 [pktgen-port-cfg.c:156(pktgen_mbuf_pool_create)]     Create: Default TX  1:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB
+II 2014-09-11 12:36:12.585 [pktgen-port-cfg.c:156(pktgen_mbuf_pool_create)]     Create: Range TX    1:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB
+II 2014-09-11 12:36:12.586 [pktgen-port-cfg.c:156(pktgen_mbuf_pool_create)]     Create: Sequence TX 1:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB
+II 2014-09-11 12:36:12.586 [pktgen-port-cfg.c:156(pktgen_mbuf_pool_create)]     Create: Special TX  1:0  - Memory used (MBUFs   64 x (size 1984 + Hdr 64)) + 790720 =    901 KB
+II 2014-09-11 12:36:12.586 [pktgen-port-cfg.c:346(pktgen_config_ports)] 
+II 2014-09-11 12:36:12.586 [pktgen-port-cfg.c:348(pktgen_config_ports)]                                                                        Port memory used =  20373 KB
+II 2014-09-11 12:36:12.586 [pktgen-port-cfg.c:281(pktgen_config_ports)] Initialize Port 2 -- TxQ 1, RxQ 1,  Src MAC a0:36:9f:27:a1:d4
+II 2014-09-11 12:36:12.586 [pktgen-port-cfg.c:156(pktgen_mbuf_pool_create)]     Create: Default RX  2:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB
+II 2014-09-11 12:36:12.587 [pktgen-port-cfg.c:302(pktgen_config_ports)] 
+II 2014-09-11 12:36:12.587 [pktgen-port-cfg.c:156(pktgen_mbuf_pool_create)]     Create: Default TX  2:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB
+II 2014-09-11 12:36:12.588 [pktgen-port-cfg.c:156(pktgen_mbuf_pool_create)]     Create: Range TX    2:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB
+II 2014-09-11 12:36:12.589 [pktgen-port-cfg.c:156(pktgen_mbuf_pool_create)]     Create: Sequence TX 2:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB
+II 2014-09-11 12:36:12.590 [pktgen-port-cfg.c:156(pktgen_mbuf_pool_create)]     Create: Special TX  2:0  - Memory used (MBUFs   64 x (size 1984 + Hdr 64)) + 790720 =    901 KB
+II 2014-09-11 12:36:12.590 [pktgen-port-cfg.c:346(pktgen_config_ports)] 
+II 2014-09-11 12:36:12.590 [pktgen-port-cfg.c:348(pktgen_config_ports)]                                                                        Port memory used =  20373 KB
+II 2014-09-11 12:36:12.590 [pktgen-port-cfg.c:281(pktgen_config_ports)] Initialize Port 3 -- TxQ 1, RxQ 1,  Src MAC a0:36:9f:27:a1:d6
+II 2014-09-11 12:36:12.590 [pktgen-port-cfg.c:156(pktgen_mbuf_pool_create)]     Create: Default RX  3:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB
+II 2014-09-11 12:36:12.591 [pktgen-port-cfg.c:302(pktgen_config_ports)] 
+II 2014-09-11 12:36:12.591 [pktgen-port-cfg.c:156(pktgen_mbuf_pool_create)]     Create: Default TX  3:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB
+II 2014-09-11 12:36:12.592 [pktgen-port-cfg.c:156(pktgen_mbuf_pool_create)]     Create: Range TX    3:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB
+II 2014-09-11 12:36:12.592 [pktgen-port-cfg.c:156(pktgen_mbuf_pool_create)]     Create: Sequence TX 3:0  - Memory used (MBUFs 2048 x (size 1984 + Hdr 64)) + 790720 =   4869 KB
+II 2014-09-11 12:36:12.593 [pktgen-port-cfg.c:156(pktgen_mbuf_pool_create)]     Create: Special TX  3:0  - Memory used (MBUFs   64 x (size 1984 + Hdr 64)) + 790720 =    901 KB
+II 2014-09-11 12:36:12.593 [pktgen-port-cfg.c:346(pktgen_config_ports)] 
+II 2014-09-11 12:36:12.593 [pktgen-port-cfg.c:348(pktgen_config_ports)]                                                                        Port memory used =  20373 KB
+II 2014-09-11 12:36:12.593 [pktgen-port-cfg.c:350(pktgen_config_ports)]                                                                       Total memory used =  81492 KB
+II 2014-09-11 12:36:15.751 [pktgen-port-cfg.c:380(pktgen_config_ports)] Port  0: Link Down <Enable promiscuous mode>
+II 2014-09-11 12:36:15.910 [pktgen-port-cfg.c:380(pktgen_config_ports)] Port  1: Link Up - speed 10000 Mbps - full-duplex <Enable promiscuous mode>
+II 2014-09-11 12:36:19.067 [pktgen-port-cfg.c:380(pktgen_config_ports)] Port  2: Link Down <Enable promiscuous mode>
+II 2014-09-11 12:36:22.226 [pktgen-port-cfg.c:380(pktgen_config_ports)] Port  3: Link Down <Enable promiscuous mode>
+II 2014-09-11 12:36:22.226 [pktgen-port-cfg.c:391(pktgen_config_ports)] 
+II 2014-09-11 12:36:22.226 [pktgen-main.c:435(main)] 
+II 2014-09-11 12:36:22.226 [pktgen-main.c:436(main)] === Display processing on lcore 0
+WW 2014-09-11 12:36:22.227 [pktgen.c:387(pktgen_has_work)] Nothing to do on lcore 5: exiting
+WW 2014-09-11 12:36:22.227 [pktgen.c:387(pktgen_has_work)] Nothing to do on lcore 6: exiting
+WW 2014-09-11 12:36:22.227 [pktgen.c:387(pktgen_has_work)] Nothing to do on lcore 7: exiting
+II 2014-09-11 12:36:22.268 [pktgen.c:1057(pktgen_main_rxtx_loop)] === RX/TX processing on lcore  1, rxcnt 1, txcnt 1, port/qid, 0/0
+II 2014-09-11 12:36:22.289 [pktgen.c:1057(pktgen_main_rxtx_loop)] === RX/TX processing on lcore  2, rxcnt 1, txcnt 1, port/qid, 1/0
+II 2014-09-11 12:36:22.311 [pktgen.c:1057(pktgen_main_rxtx_loop)] === RX/TX processing on lcore  3, rxcnt 1, txcnt 1, port/qid, 2/0
+II 2014-09-11 12:36:22.332 [pktgen.c:1057(pktgen_main_rxtx_loop)] === RX/TX processing on lcore  4, rxcnt 1, txcnt 1, port/qid, 3/0

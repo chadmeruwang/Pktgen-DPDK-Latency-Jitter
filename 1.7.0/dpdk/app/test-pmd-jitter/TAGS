@@ -1,0 +1,1963 @@
+
+cmdline.c,70829
+struct cmd_help_brief_result 100,3162
+	cmdline_fixed_string_t help;101,3193
+static void cmd_help_brief_parsed(104,3227
+cmdline_parse_token_string_t cmd_help_brief_help 125,3993
+cmdline_parse_inst_t cmd_help_brief 128,4116
+struct cmd_help_long_result 139,4334
+	cmdline_fixed_string_t help;140,4364
+	cmdline_fixed_string_t section;141,4394
+static void cmd_help_long_parsed(144,4431
+cmdline_parse_token_string_t cmd_help_long_help 662,20776
+cmdline_parse_token_string_t cmd_help_long_section 665,20897
+cmdline_parse_inst_t cmd_help_long 670,21087
+struct cmd_operate_port_result 683,21331
+	cmdline_fixed_string_t keyword;684,21364
+	cmdline_fixed_string_t name;685,21397
+	cmdline_fixed_string_t value;686,21427
+static void cmd_operate_port_parsed(689,21462
+cmdline_parse_token_string_t cmd_operate_port_all_cmd 705,21900
+cmdline_parse_token_string_t cmd_operate_port_all_port 708,22040
+cmdline_parse_token_string_t cmd_operate_port_all_all 711,22188
+cmdline_parse_inst_t cmd_operate_port 714,22318
+struct cmd_operate_specific_port_result 727,22662
+	cmdline_fixed_string_t keyword;728,22704
+	cmdline_fixed_string_t name;729,22737
+	uint8_t value;730,22767
+static void cmd_operate_specific_port_parsed(733,22787
+cmdline_parse_token_string_t cmd_operate_specific_port_cmd 749,23236
+cmdline_parse_token_string_t cmd_operate_specific_port_port 752,23389
+cmdline_parse_token_num_t cmd_operate_specific_port_id 755,23551
+cmdline_parse_inst_t cmd_operate_specific_port 759,23695
+struct cmd_config_speed_all 772,24065
+	cmdline_fixed_string_t port;773,24095
+	cmdline_fixed_string_t keyword;774,24125
+	cmdline_fixed_string_t all;775,24158
+	cmdline_fixed_string_t item1;776,24187
+	cmdline_fixed_string_t item2;777,24218
+	cmdline_fixed_string_t value1;778,24249
+	cmdline_fixed_string_t value2;779,24281
+cmd_config_speed_all_parsed(783,24329
+cmdline_parse_token_string_t cmd_config_speed_all_port 831,25600
+cmdline_parse_token_string_t cmd_config_speed_all_keyword 833,25727
+cmdline_parse_token_string_t cmd_config_speed_all_all 836,25869
+cmdline_parse_token_string_t cmd_config_speed_all_item1 838,25993
+cmdline_parse_token_string_t cmd_config_speed_all_value1 840,26123
+cmdline_parse_token_string_t cmd_config_speed_all_item2 843,26278
+cmdline_parse_token_string_t cmd_config_speed_all_value2 845,26409
+cmdline_parse_inst_t cmd_config_speed_all 849,26557
+struct cmd_config_speed_specific 867,27097
+	cmdline_fixed_string_t port;868,27132
+	cmdline_fixed_string_t keyword;869,27162
+	uint8_t id;870,27195
+	cmdline_fixed_string_t item1;871,27208
+	cmdline_fixed_string_t item2;872,27239
+	cmdline_fixed_string_t value1;873,27270
+	cmdline_fixed_string_t value2;874,27302
+cmd_config_speed_specific_parsed(878,27350
+cmdline_parse_token_string_t cmd_config_speed_specific_port 929,28690
+cmdline_parse_token_string_t cmd_config_speed_specific_keyword 932,28835
+cmdline_parse_token_num_t cmd_config_speed_specific_id 935,28988
+cmdline_parse_token_string_t cmd_config_speed_specific_item1 937,29114
+cmdline_parse_token_string_t cmd_config_speed_specific_value1 940,29262
+cmdline_parse_token_string_t cmd_config_speed_specific_item2 943,29427
+cmdline_parse_token_string_t cmd_config_speed_specific_value2 946,29576
+cmdline_parse_inst_t cmd_config_speed_specific 950,29735
+struct cmd_config_rx_tx 968,30310
+	cmdline_fixed_string_t port;969,30336
+	cmdline_fixed_string_t keyword;970,30366
+	cmdline_fixed_string_t all;971,30399
+	cmdline_fixed_string_t name;972,30428
+	uint16_t value;973,30458
+cmd_config_rx_tx_parsed(977,30491
+cmdline_parse_token_string_t cmd_config_rx_tx_port 1026,31673
+cmdline_parse_token_string_t cmd_config_rx_tx_keyword 1028,31792
+cmdline_parse_token_string_t cmd_config_rx_tx_all 1030,31919
+cmdline_parse_token_string_t cmd_config_rx_tx_name 1032,32035
+cmdline_parse_token_num_t cmd_config_rx_tx_value 1035,32171
+cmdline_parse_inst_t cmd_config_rx_tx 1038,32287
+struct cmd_config_max_pkt_len_result 1053,32670
+	cmdline_fixed_string_t port;1054,32709
+	cmdline_fixed_string_t keyword;1055,32739
+	cmdline_fixed_string_t all;1056,32772
+	cmdline_fixed_string_t name;1057,32801
+	uint32_t value;1058,32831
+cmd_config_max_pkt_len_parsed(1062,32864
+cmdline_parse_token_string_t cmd_config_max_pkt_len_port 1097,33641
+cmdline_parse_token_string_t cmd_config_max_pkt_len_keyword 1100,33787
+cmdline_parse_token_string_t cmd_config_max_pkt_len_all 1103,33941
+cmdline_parse_token_string_t cmd_config_max_pkt_len_name 1106,34084
+cmdline_parse_token_num_t cmd_config_max_pkt_len_value 1109,34237
+cmdline_parse_inst_t cmd_config_max_pkt_len 1113,34380
+struct cmd_config_mtu_result 1128,34795
+	cmdline_fixed_string_t port;1129,34826
+	cmdline_fixed_string_t keyword;1130,34856
+	cmdline_fixed_string_t mtu;1131,34889
+	uint8_t port_id;1132,34918
+	uint16_t value;1133,34936
+cmd_config_mtu_parsed(1137,34969
+cmdline_parse_token_string_t cmd_config_mtu_port 1150,35312
+cmdline_parse_token_string_t cmd_config_mtu_keyword 1153,35439
+cmdline_parse_token_string_t cmd_config_mtu_mtu 1156,35574
+cmdline_parse_token_num_t cmd_config_mtu_port_id 1159,35702
+cmdline_parse_token_num_t cmd_config_mtu_value 1161,35823
+cmdline_parse_inst_t cmd_config_mtu 1164,35942
+struct cmd_config_rx_mode_flag 1179,36291
+	cmdline_fixed_string_t port;1180,36324
+	cmdline_fixed_string_t keyword;1181,36354
+	cmdline_fixed_string_t all;1182,36387
+	cmdline_fixed_string_t name;1183,36416
+	cmdline_fixed_string_t value;1184,36446
+cmd_config_rx_mode_flag_parsed(1188,36493
+cmdline_parse_token_string_t cmd_config_rx_mode_flag_port 1249,37896
+cmdline_parse_token_string_t cmd_config_rx_mode_flag_keyword 1251,38029
+cmdline_parse_token_string_t cmd_config_rx_mode_flag_all 1254,38178
+cmdline_parse_token_string_t cmd_config_rx_mode_flag_name 1256,38308
+cmdline_parse_token_string_t cmd_config_rx_mode_flag_value 1259,38468
+cmdline_parse_inst_t cmd_config_rx_mode_flag 1263,38613
+struct cmd_config_rss 1278,39046
+	cmdline_fixed_string_t port;1279,39070
+	cmdline_fixed_string_t keyword;1280,39100
+	cmdline_fixed_string_t all;1281,39133
+	cmdline_fixed_string_t name;1282,39162
+	cmdline_fixed_string_t value;1283,39192
+cmd_config_rss_parsed(1287,39239
+cmdline_parse_token_string_t cmd_config_rss_port 1310,39831
+cmdline_parse_token_string_t cmd_config_rss_keyword 1312,39946
+cmdline_parse_token_string_t cmd_config_rss_all 1314,40069
+cmdline_parse_token_string_t cmd_config_rss_name 1316,40181
+cmdline_parse_token_string_t cmd_config_rss_value 1318,40295
+cmdline_parse_inst_t cmd_config_rss 1321,40420
+struct cmd_config_rss_hash_key 1336,40781
+	cmdline_fixed_string_t port;1337,40814
+	cmdline_fixed_string_t config;1338,40844
+	uint8_t port_id;1339,40876
+	cmdline_fixed_string_t rss_hash_key;1340,40894
+	cmdline_fixed_string_t key;1341,40932
+#define RSS_HASH_KEY_LENGTH 1344,40965
+hexa_digit_to_value(1346,41011
+parse_and_check_key_hexa_digit(1359,41386
+cmd_config_rss_hash_key_parsed(1371,41659
+cmdline_parse_token_string_t cmd_config_rss_hash_key_port 1401,42615
+cmdline_parse_token_string_t cmd_config_rss_hash_key_config 1403,42748
+cmdline_parse_token_num_t cmd_config_rss_hash_key_port_id 1406,42892
+cmdline_parse_token_string_t cmd_config_rss_hash_key_rss_hash_key 1408,43024
+cmdline_parse_token_string_t cmd_config_rss_hash_key_value 1411,43186
+cmdline_parse_inst_t cmd_config_rss_hash_key 1414,43318
+struct cmd_config_rss_reta 1429,43759
+	cmdline_fixed_string_t port;1430,43788
+	cmdline_fixed_string_t keyword;1431,43818
+	uint8_t port_id;1432,43851
+	cmdline_fixed_string_t name;1433,43869
+	cmdline_fixed_string_t list_name;1434,43899
+	cmdline_fixed_string_t list_of_items;1435,43934
+parse_reta_config(1439,43988
+	enum fieldnames 1448,44178
+		FLD_HASH_INDEX 1449,44197
+		FLD_QUEUE,1450,44219
+		_NUM_FLD1451,44232
+cmd_set_rss_reta_parsed(1495,45226
+cmdline_parse_token_string_t cmd_config_rss_reta_port 1515,45844
+cmdline_parse_token_string_t cmd_config_rss_reta_keyword 1517,45969
+cmdline_parse_token_num_t cmd_config_rss_reta_port_id 1519,46102
+cmdline_parse_token_string_t cmd_config_rss_reta_name 1521,46226
+cmdline_parse_token_string_t cmd_config_rss_reta_list_name 1523,46350
+cmdline_parse_token_string_t cmd_config_rss_reta_list_of_items 1525,46485
+cmdline_parse_inst_t cmd_config_rss_reta 1528,46666
+struct cmd_showport_reta 1544,47129
+	cmdline_fixed_string_t show;1545,47156
+	cmdline_fixed_string_t port;1546,47186
+	uint8_t port_id;1547,47216
+	cmdline_fixed_string_t rss;1548,47234
+	cmdline_fixed_string_t reta;1549,47263
+	uint64_t mask_lo;1550,47293
+	uint64_t mask_hi;1551,47312
+static void cmd_showport_reta_parsed(1554,47335
+cmdline_parse_token_string_t cmd_showport_reta_show 1572,47813
+cmdline_parse_token_string_t cmd_showport_reta_port 1574,47942
+cmdline_parse_token_num_t cmd_showport_reta_port_id 1576,48071
+cmdline_parse_token_string_t cmd_showport_reta_rss 1578,48198
+cmdline_parse_token_string_t cmd_showport_reta_reta 1580,48323
+cmdline_parse_token_num_t cmd_showport_reta_mask_lo 1582,48451
+cmdline_parse_token_num_t cmd_showport_reta_mask_hi 1584,48577
+cmdline_parse_inst_t cmd_showport_reta 1587,48697
+struct cmd_showport_rss_hash 1605,49220
+	cmdline_fixed_string_t show;1606,49251
+	cmdline_fixed_string_t port;1607,49281
+	uint8_t port_id;1608,49311
+	cmdline_fixed_string_t rss_hash;1609,49329
+	cmdline_fixed_string_t key;1610,49363
+static void cmd_showport_rss_hash_parsed(1613,49420
+cmdline_parse_token_string_t cmd_showport_rss_hash_show 1622,49674
+cmdline_parse_token_string_t cmd_showport_rss_hash_port 1624,49803
+cmdline_parse_token_num_t cmd_showport_rss_hash_port_id 1626,49932
+cmdline_parse_token_string_t cmd_showport_rss_hash_rss_hash 1628,50060
+cmdline_parse_token_string_t cmd_showport_rss_hash_rss_key 1631,50206
+cmdline_parse_inst_t cmd_showport_rss_hash 1634,50337
+cmdline_parse_inst_t cmd_showport_rss_hash_key 1647,50684
+struct cmd_config_dcb 1662,51114
+	cmdline_fixed_string_t port;1663,51138
+	cmdline_fixed_string_t config;1664,51168
+	uint8_t port_id;1665,51200
+	cmdline_fixed_string_t dcb;1666,51218
+	cmdline_fixed_string_t vt;1667,51247
+	cmdline_fixed_string_t vt_en;1668,51275
+	uint8_t num_tcs;1669,51306
+	cmdline_fixed_string_t pfc;1670,51324
+	cmdline_fixed_string_t pfc_en;1671,51353
+cmd_config_dcb_parsed(1675,51401
+cmdline_parse_token_string_t cmd_config_dcb_port 1717,52489
+cmdline_parse_token_string_t cmd_config_dcb_config 1719,52611
+cmdline_parse_token_num_t cmd_config_dcb_port_id 1721,52739
+cmdline_parse_token_string_t cmd_config_dcb_dcb 1723,52860
+cmdline_parse_token_string_t cmd_config_dcb_vt 1725,52979
+cmdline_parse_token_string_t cmd_config_dcb_vt_en 1727,53095
+cmdline_parse_token_num_t cmd_config_dcb_num_tcs 1729,53221
+cmdline_parse_token_string_t cmd_config_dcb_pfc=1731,53342
+cmdline_parse_token_string_t cmd_config_dcb_pfc_en 1733,53460
+cmdline_parse_inst_t cmd_config_dcb 1736,53589
+struct cmd_config_burst 1755,54166
+	cmdline_fixed_string_t port;1756,54192
+	cmdline_fixed_string_t keyword;1757,54222
+	cmdline_fixed_string_t all;1758,54255
+	cmdline_fixed_string_t name;1759,54284
+	uint16_t value;1760,54314
+cmd_config_burst_parsed(1764,54347
+cmdline_parse_token_string_t cmd_config_burst_port 1791,54941
+cmdline_parse_token_string_t cmd_config_burst_keyword 1793,55060
+cmdline_parse_token_string_t cmd_config_burst_all 1795,55187
+cmdline_parse_token_string_t cmd_config_burst_name 1797,55303
+cmdline_parse_token_num_t cmd_config_burst_value 1799,55423
+cmdline_parse_inst_t cmd_config_burst 1802,55539
+struct cmd_config_thresh 1817,55910
+	cmdline_fixed_string_t port;1818,55937
+	cmdline_fixed_string_t keyword;1819,55967
+	cmdline_fixed_string_t all;1820,56000
+	cmdline_fixed_string_t name;1821,56029
+	uint8_t value;1822,56059
+cmd_config_thresh_parsed(1826,56091
+cmdline_parse_token_string_t cmd_config_thresh_port 1859,56910
+cmdline_parse_token_string_t cmd_config_thresh_keyword 1861,57031
+cmdline_parse_token_string_t cmd_config_thresh_all 1863,57160
+cmdline_parse_token_string_t cmd_config_thresh_name 1865,57278
+cmdline_parse_token_num_t cmd_config_thresh_value 1868,57428
+cmdline_parse_inst_t cmd_config_thresh 1871,57545
+struct cmd_config_threshold 1886,57952
+	cmdline_fixed_string_t port;1887,57982
+	cmdline_fixed_string_t keyword;1888,58012
+	cmdline_fixed_string_t all;1889,58045
+	cmdline_fixed_string_t name;1890,58074
+	uint16_t value;1891,58104
+cmd_config_threshold_parsed(1895,58137
+cmdline_parse_token_string_t cmd_config_threshold_port 1922,58747
+cmdline_parse_token_string_t cmd_config_threshold_keyword 1924,58874
+cmdline_parse_token_string_t cmd_config_threshold_all 1927,59017
+cmdline_parse_token_string_t cmd_config_threshold_name 1929,59141
+cmdline_parse_token_num_t cmd_config_threshold_value 1932,59291
+cmdline_parse_inst_t cmd_config_threshold 1935,59415
+struct cmd_stop_result 1950,59812
+	cmdline_fixed_string_t stop;1951,59837
+static void cmd_stop_parsed(1954,59871
+cmdline_parse_token_string_t cmd_stop_stop 1961,60070
+cmdline_parse_inst_t cmd_stop 1964,60181
+parse_item_list(1977,60429
+struct cmd_set_list_result 2040,61839
+	cmdline_fixed_string_t cmd_keyword;2041,61868
+	cmdline_fixed_string_t list_name;2042,61905
+	cmdline_fixed_string_t list_of_items;2043,61940
+static void cmd_set_list_parsed(2046,61983
+		unsigned int lcorelist[lcorelist2052,62169
+		unsigned int portlist[portlist2053,62210
+cmdline_parse_token_string_t cmd_set_list_keyword 2075,62801
+cmdline_parse_token_string_t cmd_set_list_name 2078,62933
+cmdline_parse_token_string_t cmd_set_list_of_items 2081,63074
+cmdline_parse_inst_t cmd_set_fwd_list 2085,63209
+struct cmd_setmask_result 2099,63519
+	cmdline_fixed_string_t set;2100,63547
+	cmdline_fixed_string_t mask;2101,63576
+	uint64_t hexavalue;2102,63606
+static void cmd_set_mask_parsed(2105,63631
+cmdline_parse_token_string_t cmd_setmask_set 2117,63983
+cmdline_parse_token_string_t cmd_setmask_mask 2119,64096
+cmdline_parse_token_num_t cmd_setmask_value 2122,64230
+cmdline_parse_inst_t cmd_set_fwd_mask 2125,64347
+struct cmd_set_result 2140,64679
+	cmdline_fixed_string_t set;2141,64703
+	cmdline_fixed_string_t what;2142,64732
+	uint16_t value;2143,64762
+static void cmd_set_parsed(2146,64783
+cmdline_parse_token_string_t cmd_set_set 2161,65270
+cmdline_parse_token_string_t cmd_set_what 2163,65375
+cmdline_parse_token_num_t cmd_set_value 2166,65511
+cmdline_parse_inst_t cmd_set_numbers 2169,65616
+struct cmd_set_txpkts_result 2183,65905
+	cmdline_fixed_string_t cmd_keyword;2184,65936
+	cmdline_fixed_string_t txpkts;2185,65973
+	cmdline_fixed_string_t seg_lengths;2186,66005
+cmd_set_txpkts_parsed(2190,66058
+cmdline_parse_token_string_t cmd_set_txpkts_keyword 2205,66501
+cmdline_parse_token_string_t cmd_set_txpkts_name 2208,66637
+cmdline_parse_token_string_t cmd_set_txpkts_lengths 2211,66768
+cmdline_parse_inst_t cmd_set_txpkts 2215,66904
+struct cmd_rx_vlan_filter_all_result 2228,67229
+	cmdline_fixed_string_t rx_vlan;2229,67268
+	cmdline_fixed_string_t what;2230,67301
+	cmdline_fixed_string_t all;2231,67331
+	uint8_t port_id;2232,67360
+cmd_rx_vlan_filter_all_parsed(2236,67394
+cmdline_parse_token_string_t cmd_rx_vlan_filter_all_rx_vlan 2248,67733
+cmdline_parse_token_string_t cmd_rx_vlan_filter_all_what 2251,67885
+cmdline_parse_token_string_t cmd_rx_vlan_filter_all_all 2254,68030
+cmdline_parse_token_num_t cmd_rx_vlan_filter_all_portid 2257,68170
+cmdline_parse_inst_t cmd_rx_vlan_filter_all 2261,68316
+struct cmd_vlan_offload_result 2276,68752
+	cmdline_fixed_string_t vlan;2277,68785
+	cmdline_fixed_string_t set;2278,68815
+	cmdline_fixed_string_t what;2279,68844
+	cmdline_fixed_string_t on;2280,68874
+	cmdline_fixed_string_t port_id;2281,68902
+cmd_vlan_offload_parsed(2285,68951
+cmdline_parse_token_string_t cmd_vlan_offload_vlan 2344,70197
+cmdline_parse_token_string_t cmd_vlan_offload_set 2347,70328
+cmdline_parse_token_string_t cmd_vlan_offload_what 2350,70456
+cmdline_parse_token_string_t cmd_vlan_offload_on 2353,70607
+cmdline_parse_token_string_t cmd_vlan_offload_portid 2356,70740
+cmdline_parse_inst_t cmd_vlan_offload 2360,70879
+struct cmd_vlan_tpid_result 2376,71341
+	cmdline_fixed_string_t vlan;2377,71371
+	cmdline_fixed_string_t set;2378,71401
+	cmdline_fixed_string_t what;2379,71430
+	uint16_t tp_id;2380,71460
+	uint8_t port_id;2381,71477
+cmd_vlan_tpid_parsed(2385,71511
+cmdline_parse_token_string_t cmd_vlan_tpid_vlan 2394,71750
+cmdline_parse_token_string_t cmd_vlan_tpid_set 2397,71875
+cmdline_parse_token_string_t cmd_vlan_tpid_what 2400,71997
+cmdline_parse_token_num_t cmd_vlan_tpid_tpid 2403,72122
+cmdline_parse_token_num_t cmd_vlan_tpid_portid 2406,72246
+cmdline_parse_inst_t cmd_vlan_tpid 2410,72374
+struct cmd_rx_vlan_filter_result 2425,72784
+	cmdline_fixed_string_t rx_vlan;2426,72819
+	cmdline_fixed_string_t what;2427,72852
+	uint16_t vlan_id;2428,72882
+	uint8_t port_id;2429,72901
+cmd_rx_vlan_filter_parsed(2433,72935
+cmdline_parse_token_string_t cmd_rx_vlan_filter_rx_vlan 2445,73262
+cmdline_parse_token_string_t cmd_rx_vlan_filter_what 2448,73406
+cmdline_parse_token_num_t cmd_rx_vlan_filter_vlanid 2451,73543
+cmdline_parse_token_num_t cmd_rx_vlan_filter_portid 2454,73681
+cmdline_parse_inst_t cmd_rx_vlan_filter 2458,73819
+struct cmd_tx_vlan_set_result 2473,74264
+	cmdline_fixed_string_t tx_vlan;2474,74296
+	cmdline_fixed_string_t set;2475,74329
+	uint16_t vlan_id;2476,74358
+	uint8_t port_id;2477,74377
+cmd_tx_vlan_set_parsed(2481,74411
+cmdline_parse_token_string_t cmd_tx_vlan_set_tx_vlan 2489,74653
+cmdline_parse_token_string_t cmd_tx_vlan_set_set 2492,74791
+cmdline_parse_token_num_t cmd_tx_vlan_set_vlanid 2495,74917
+cmdline_parse_token_num_t cmd_tx_vlan_set_portid 2498,75049
+cmdline_parse_inst_t cmd_tx_vlan_set 2502,75181
+struct cmd_tx_vlan_set_pvid_result 2517,75609
+	cmdline_fixed_string_t tx_vlan;2518,75646
+	cmdline_fixed_string_t set;2519,75679
+	cmdline_fixed_string_t pvid;2520,75708
+	uint8_t port_id;2521,75738
+	uint16_t vlan_id;2522,75756
+	cmdline_fixed_string_t mode;2523,75775
+cmd_tx_vlan_set_pvid_parsed(2527,75821
+cmdline_parse_token_string_t cmd_tx_vlan_set_pvid_tx_vlan 2539,76171
+cmdline_parse_token_string_t cmd_tx_vlan_set_pvid_set 2542,76319
+cmdline_parse_token_string_t cmd_tx_vlan_set_pvid_pvid 2545,76455
+cmdline_parse_token_num_t cmd_tx_vlan_set_pvid_port_id 2548,76594
+cmdline_parse_token_num_t cmd_tx_vlan_set_pvid_vlan_id 2551,76735
+cmdline_parse_token_string_t cmd_tx_vlan_set_pvid_mode 2554,76878
+cmdline_parse_inst_t cmd_tx_vlan_set_pvid 2558,77020
+struct cmd_tx_vlan_reset_result 2574,77509
+	cmdline_fixed_string_t tx_vlan;2575,77543
+	cmdline_fixed_string_t reset;2576,77576
+	uint8_t port_id;2577,77607
+cmd_tx_vlan_reset_parsed(2581,77641
+cmdline_parse_token_string_t cmd_tx_vlan_reset_tx_vlan 2590,77866
+cmdline_parse_token_string_t cmd_tx_vlan_reset_reset 2593,78008
+cmdline_parse_token_num_t cmd_tx_vlan_reset_portid 2596,78144
+cmdline_parse_inst_t cmd_tx_vlan_reset 2600,78280
+struct cmd_tx_cksum_set_result 2615,78667
+	cmdline_fixed_string_t tx_cksum;2616,78700
+	cmdline_fixed_string_t set;2617,78734
+	uint8_t cksum_mask;2618,78763
+	uint8_t port_id;2619,78784
+cmd_tx_cksum_set_parsed(2623,78818
+cmdline_parse_token_string_t cmd_tx_cksum_set_tx_cksum 2632,79067
+cmdline_parse_token_string_t cmd_tx_cksum_set_set 2635,79212
+cmdline_parse_token_num_t cmd_tx_cksum_set_cksum_mask 2638,79339
+cmdline_parse_token_num_t cmd_tx_cksum_set_portid 2641,79474
+cmdline_parse_inst_t cmd_tx_cksum_set 2645,79603
+struct cmd_set_flush_rx 2661,80114
+	cmdline_fixed_string_t set;2662,80140
+	cmdline_fixed_string_t flush_rx;2663,80169
+	cmdline_fixed_string_t mode;2664,80203
+cmd_set_flush_rx_parsed(2668,80249
+cmdline_parse_token_string_t cmd_setflushrx_set 2676,80496
+cmdline_parse_token_string_t cmd_setflushrx_flush_rx 2679,80613
+cmdline_parse_token_string_t cmd_setflushrx_mode 2682,80745
+cmdline_parse_inst_t cmd_set_flush_rx 2687,80869
+struct cmd_set_link_check 2700,81204
+	cmdline_fixed_string_t set;2701,81232
+	cmdline_fixed_string_t link_check;2702,81261
+	cmdline_fixed_string_t mode;2703,81297
+cmd_set_link_check_parsed(2707,81343
+cmdline_parse_token_string_t cmd_setlinkcheck_set 2715,81596
+cmdline_parse_token_string_t cmd_setlinkcheck_link_check 2718,81717
+cmdline_parse_token_string_t cmd_setlinkcheck_mode 2721,81859
+cmdline_parse_inst_t cmd_set_link_check 2726,81987
+struct cmd_set_bypass_mode_result 2741,82389
+	cmdline_fixed_string_t set;2742,82425
+	cmdline_fixed_string_t bypass;2743,82454
+	cmdline_fixed_string_t mode;2744,82486
+	cmdline_fixed_string_t value;2745,82516
+	uint8_t port_id;2746,82547
+cmd_set_bypass_mode_parsed(2750,82581
+cmdline_parse_token_string_t cmd_setbypass_mode_set 2774,83297
+cmdline_parse_token_string_t cmd_setbypass_mode_bypass 2777,83428
+cmdline_parse_token_string_t cmd_setbypass_mode_mode 2780,83568
+cmdline_parse_token_string_t cmd_setbypass_mode_value 2783,83702
+cmdline_parse_token_num_t cmd_setbypass_mode_port 2786,83855
+cmdline_parse_inst_t cmd_set_bypass_mode 2790,83987
+struct cmd_set_bypass_event_result 2806,84446
+	cmdline_fixed_string_t set;2807,84483
+	cmdline_fixed_string_t bypass;2808,84512
+	cmdline_fixed_string_t event;2809,84544
+	cmdline_fixed_string_t event_value;2810,84575
+	cmdline_fixed_string_t mode;2811,84612
+	cmdline_fixed_string_t mode_value;2812,84642
+	uint8_t port_id;2813,84678
+cmd_set_bypass_event_parsed(2817,84712
+cmdline_parse_token_string_t cmd_setbypass_event_set 2871,86373
+cmdline_parse_token_string_t cmd_setbypass_event_bypass 2874,86506
+cmdline_parse_token_string_t cmd_setbypass_event_event 2877,86648
+cmdline_parse_token_string_t cmd_setbypass_event_event_value 2880,86787
+cmdline_parse_token_string_t cmd_setbypass_event_mode 2883,86977
+cmdline_parse_token_string_t cmd_setbypass_event_mode_value 2886,87113
+cmdline_parse_token_num_t cmd_setbypass_event_port 2889,87278
+cmdline_parse_inst_t cmd_set_bypass_event 2893,87412
+struct cmd_set_bypass_timeout_result 2913,88038
+	cmdline_fixed_string_t set;2914,88077
+	cmdline_fixed_string_t bypass;2915,88106
+	cmdline_fixed_string_t timeout;2916,88138
+	cmdline_fixed_string_t value;2917,88171
+cmd_set_bypass_timeout_parsed(2921,88218
+cmdline_parse_token_string_t cmd_setbypass_timeout_set 2945,89006
+cmdline_parse_token_string_t cmd_setbypass_timeout_bypass 2948,89143
+cmdline_parse_token_string_t cmd_setbypass_timeout_timeout 2951,89289
+cmdline_parse_token_string_t cmd_setbypass_timeout_value 2954,89438
+cmdline_parse_inst_t cmd_set_bypass_timeout 2958,89596
+struct cmd_show_bypass_config_result 2973,90039
+	cmdline_fixed_string_t show;2974,90078
+	cmdline_fixed_string_t bypass;2975,90108
+	cmdline_fixed_string_t config;2976,90140
+	uint8_t port_id;2977,90172
+cmd_show_bypass_config_parsed(2981,90206
+cmdline_parse_token_string_t cmd_showbypass_config_show 3042,91929
+cmdline_parse_token_string_t cmd_showbypass_config_bypass 3045,92069
+cmdline_parse_token_string_t cmd_showbypass_config_config 3048,92215
+cmdline_parse_token_num_t cmd_showbypass_config_port 3051,92361
+cmdline_parse_inst_t cmd_show_bypass_config 3055,92499
+struct cmd_set_bonding_mode_result 3072,92954
+	cmdline_fixed_string_t set;3073,92991
+	cmdline_fixed_string_t bonding;3074,93020
+	cmdline_fixed_string_t mode;3075,93053
+	uint8_t value;3076,93083
+	uint8_t port_id;3077,93099
+static void cmd_set_bonding_mode_parsed(3080,93121
+cmdline_parse_token_string_t cmd_setbonding_mode_set 3092,93539
+cmdline_parse_token_string_t cmd_setbonding_mode_bonding 3095,93670
+cmdline_parse_token_string_t cmd_setbonding_mode_mode 3098,93813
+cmdline_parse_token_num_t cmd_setbonding_mode_value 3101,93947
+cmdline_parse_token_num_t cmd_setbonding_mode_port 3104,94076
+cmdline_parse_inst_t cmd_set_bonding_mode 3108,94207
+struct cmd_set_bonding_balance_xmit_policy_result 3123,94668
+	cmdline_fixed_string_t set;3124,94720
+	cmdline_fixed_string_t bonding;3125,94749
+	cmdline_fixed_string_t balance_xmit_policy;3126,94782
+	uint8_t port_id;3127,94827
+	cmdline_fixed_string_t policy;3128,94845
+static void cmd_set_bonding_balance_xmit_policy_parsed(3131,94881
+cmdline_parse_token_string_t cmd_setbonding_balance_xmit_policy_set 3157,95683
+cmdline_parse_token_string_t cmd_setbonding_balance_xmit_policy_bonding 3160,95844
+cmdline_parse_token_string_t cmd_setbonding_balance_xmit_policy_balance_xmit_policy 3163,96017
+cmdline_parse_token_num_t cmd_setbonding_balance_xmit_policy_port 3166,96226
+cmdline_parse_token_string_t cmd_setbonding_balance_xmit_policy_policy 3169,96386
+cmdline_parse_inst_t cmd_set_balance_xmit_policy 3173,96561
+struct cmd_show_bonding_config_result 3188,97169
+	cmdline_fixed_string_t show;3189,97209
+	cmdline_fixed_string_t bonding;3190,97239
+	cmdline_fixed_string_t config;3191,97272
+	uint8_t port_id;3192,97304
+static void cmd_show_bonding_config_parsed(3195,97326
+cmdline_parse_token_string_t cmd_showbonding_config_show 3286,99643
+cmdline_parse_token_string_t cmd_showbonding_config_bonding 3289,99783
+cmdline_parse_token_string_t cmd_showbonding_config_config 3292,99932
+cmdline_parse_token_num_t cmd_showbonding_config_port 3295,100078
+cmdline_parse_inst_t cmd_show_bonding_config 3299,100215
+struct cmd_set_bonding_primary_result 3313,100641
+	cmdline_fixed_string_t set;3314,100681
+	cmdline_fixed_string_t bonding;3315,100710
+	cmdline_fixed_string_t primary;3316,100743
+	uint8_t slave_id;3317,100776
+	uint8_t port_id;3318,100795
+static void cmd_set_bonding_primary_parsed(3321,100817
+cmdline_parse_token_string_t cmd_setbonding_primary_set 3338,101349
+cmdline_parse_token_string_t cmd_setbonding_primary_bonding 3341,101486
+cmdline_parse_token_string_t cmd_setbonding_primary_primary 3344,101635
+cmdline_parse_token_num_t cmd_setbonding_primary_slave 3347,101784
+cmdline_parse_token_num_t cmd_setbonding_primary_port 3350,101922
+cmdline_parse_inst_t cmd_set_bonding_primary 3354,102059
+struct cmd_add_bonding_slave_result 3369,102527
+	cmdline_fixed_string_t add;3370,102565
+	cmdline_fixed_string_t bonding;3371,102594
+	cmdline_fixed_string_t slave;3372,102627
+	uint8_t slave_id;3373,102658
+	uint8_t port_id;3374,102677
+static void cmd_add_bonding_slave_parsed(3377,102699
+cmdline_parse_token_string_t cmd_addbonding_slave_add 3394,103241
+cmdline_parse_token_string_t cmd_addbonding_slave_bonding 3397,103374
+cmdline_parse_token_string_t cmd_addbonding_slave_slave 3400,103519
+cmdline_parse_token_num_t cmd_addbonding_slave_slaveid 3403,103658
+cmdline_parse_token_num_t cmd_addbonding_slave_port 3406,103794
+cmdline_parse_inst_t cmd_add_bonding_slave 3410,103927
+struct cmd_remove_bonding_slave_result 3425,104386
+	cmdline_fixed_string_t remove;3426,104427
+	cmdline_fixed_string_t bonding;3427,104459
+	cmdline_fixed_string_t slave;3428,104492
+	uint8_t slave_id;3429,104523
+	uint8_t port_id;3430,104542
+static void cmd_remove_bonding_slave_parsed(3433,104564
+cmdline_parse_token_string_t cmd_removebonding_slave_remove 3450,105120
+cmdline_parse_token_string_t cmd_removebonding_slave_bonding 3453,105272
+cmdline_parse_token_string_t cmd_removebonding_slave_slave 3456,105427
+cmdline_parse_token_num_t cmd_removebonding_slave_slaveid 3459,105576
+cmdline_parse_token_num_t cmd_removebonding_slave_port 3462,105722
+cmdline_parse_inst_t cmd_remove_bonding_slave 3466,105865
+struct cmd_create_bonded_device_result 3481,106364
+	cmdline_fixed_string_t create;3482,106405
+	cmdline_fixed_string_t bonded;3483,106437
+	cmdline_fixed_string_t device;3484,106469
+	uint8_t mode;3485,106501
+	uint8_t socket;3486,106516
+static int bond_dev_num 3489,106537
+static void cmd_create_bonded_device_parsed(3491,106567
+cmdline_parse_token_string_t cmd_createbonded_device_create 3524,107418
+cmdline_parse_token_string_t cmd_createbonded_device_bonded 3527,107570
+cmdline_parse_token_string_t cmd_createbonded_device_device 3530,107722
+cmdline_parse_token_num_t cmd_createbonded_device_mode 3533,107874
+cmdline_parse_token_num_t cmd_createbonded_device_socket 3536,108013
+cmdline_parse_inst_t cmd_create_bonded_device 3540,108157
+struct cmd_set_bond_mac_addr_result 3555,108684
+	cmdline_fixed_string_t set;3556,108722
+	cmdline_fixed_string_t bonding;3557,108751
+	cmdline_fixed_string_t mac_addr;3558,108784
+	uint8_t port_num;3559,108818
+	struct ether_addr address;3560,108837
+static void cmd_set_bond_mac_addr_parsed(3563,108869
+cmdline_parse_token_string_t cmd_set_bond_mac_addr_set 3582,109407
+cmdline_parse_token_string_t cmd_set_bond_mac_addr_bonding 3584,109541
+cmdline_parse_token_string_t cmd_set_bond_mac_addr_mac 3587,109691
+cmdline_parse_token_num_t cmd_set_bond_mac_addr_portnum 3590,109839
+cmdline_parse_token_etheraddr_t cmd_set_bond_mac_addr_addr 3592,109976
+cmdline_parse_inst_t cmd_set_bond_mac_addr 3595,110115
+struct cmd_set_fwd_mode_result 3612,110589
+	cmdline_fixed_string_t set;3613,110622
+	cmdline_fixed_string_t fwd;3614,110651
+	cmdline_fixed_string_t mode;3615,110680
+static void cmd_set_fwd_mode_parsed(3618,110714
+cmdline_parse_token_string_t cmd_setfwd_set 3627,110964
+cmdline_parse_token_string_t cmd_setfwd_fwd 3629,111081
+cmdline_parse_token_string_t cmd_setfwd_mode 3631,111198
+cmdline_parse_inst_t cmd_set_fwd_mode 3635,111339
+static void cmd_set_fwd_mode_init(3647,111579
+struct cmd_set_burst_tx_retry_result 3670,112200
+	cmdline_fixed_string_t set;3671,112239
+	cmdline_fixed_string_t burst;3672,112268
+	cmdline_fixed_string_t tx;3673,112299
+	cmdline_fixed_string_t delay;3674,112327
+	uint32_t time;3675,112358
+	cmdline_fixed_string_t retry;3676,112374
+	uint32_t retry_num;3677,112405
+static void cmd_set_burst_tx_retry_parsed(3680,112430
+cmdline_parse_token_string_t cmd_set_burst_tx_retry_set 3696,112894
+cmdline_parse_token_string_t cmd_set_burst_tx_retry_burst 3698,113029
+cmdline_parse_token_string_t cmd_set_burst_tx_retry_tx 3701,113175
+cmdline_parse_token_string_t cmd_set_burst_tx_retry_delay 3703,113307
+cmdline_parse_token_num_t cmd_set_burst_tx_retry_time 3705,113448
+cmdline_parse_token_string_t cmd_set_burst_tx_retry_retry 3707,113580
+cmdline_parse_token_num_t cmd_set_burst_tx_retry_retry_num 3709,113721
+cmdline_parse_inst_t cmd_set_burst_tx_retry 3712,113864
+struct cmd_set_promisc_mode_result 3728,114366
+	cmdline_fixed_string_t set;3729,114403
+	cmdline_fixed_string_t promisc;3730,114432
+	cmdline_fixed_string_t port_all;3731,114465
+	uint8_t port_num;3732,114539
+	cmdline_fixed_string_t mode;3733,114613
+static void cmd_set_promisc_mode_parsed(3736,114647
+cmdline_parse_token_string_t cmd_setpromisc_set 3766,115229
+cmdline_parse_token_string_t cmd_setpromisc_promisc 3768,115354
+cmdline_parse_token_string_t cmd_setpromisc_portall 3771,115496
+cmdline_parse_token_num_t cmd_setpromisc_portnum 3774,115635
+cmdline_parse_token_string_t cmd_setpromisc_mode 3777,115772
+cmdline_parse_inst_t cmd_set_promisc_mode_all 3781,115908
+cmdline_parse_inst_t cmd_set_promisc_mode_one 3794,116246
+struct cmd_set_allmulti_mode_result 3808,116610
+	cmdline_fixed_string_t set;3809,116648
+	cmdline_fixed_string_t allmulti;3810,116677
+	cmdline_fixed_string_t port_all;3811,116711
+	uint8_t port_num;3812,116785
+	cmdline_fixed_string_t mode;3813,116859
+static void cmd_set_allmulti_mode_parsed(3816,116893
+cmdline_parse_token_string_t cmd_setallmulti_set 3846,117481
+cmdline_parse_token_string_t cmd_setallmulti_allmulti 3848,117608
+cmdline_parse_token_string_t cmd_setallmulti_portall 3851,117755
+cmdline_parse_token_num_t cmd_setallmulti_portnum 3854,117896
+cmdline_parse_token_string_t cmd_setallmulti_mode 3857,118035
+cmdline_parse_inst_t cmd_set_allmulti_mode_all 3861,118173
+cmdline_parse_inst_t cmd_set_allmulti_mode_one 3874,118520
+struct cmd_pkt_filter_result 3888,118899
+	cmdline_fixed_string_t pkt_filter;3889,118930
+	uint8_t  port_id;3890,118966
+	cmdline_fixed_string_t protocol;3891,118985
+	cmdline_fixed_string_t src;3892,119019
+	cmdline_ipaddr_t ip_src;3893,119048
+	uint16_t port_src;3894,119074
+	cmdline_fixed_string_t dst;3895,119094
+	cmdline_ipaddr_t ip_dst;3896,119123
+	uint16_t port_dst;3897,119149
+	cmdline_fixed_string_t flexbytes;3898,119169
+	uint16_t flexbytes_value;3899,119204
+	cmdline_fixed_string_t vlan;3900,119231
+	uint16_t  vlan_id;3901,119261
+	cmdline_fixed_string_t queue;3902,119281
+	int8_t  queue_id;3903,119312
+	cmdline_fixed_string_t soft;3904,119331
+	uint8_t  soft_id;3905,119361
+cmd_pkt_filter_parsed(3909,119396
+cmdline_parse_token_num_t cmd_pkt_filter_port_id 3977,121744
+cmdline_parse_token_string_t cmd_pkt_filter_protocol 3980,121874
+cmdline_parse_token_string_t cmd_pkt_filter_src 3983,122020
+cmdline_parse_token_ipaddr_t cmd_pkt_filter_ip_src 3986,122144
+cmdline_parse_token_num_t cmd_pkt_filter_port_src 3989,122267
+cmdline_parse_token_string_t cmd_pkt_filter_dst 3992,122400
+cmdline_parse_token_ipaddr_t cmd_pkt_filter_ip_dst 3995,122524
+cmdline_parse_token_num_t cmd_pkt_filter_port_dst 3998,122647
+cmdline_parse_token_string_t cmd_pkt_filter_flexbytes 4001,122780
+cmdline_parse_token_num_t cmd_pkt_filter_flexbytes_value 4004,122922
+cmdline_parse_token_string_t cmd_pkt_filter_vlan 4007,123069
+cmdline_parse_token_num_t cmd_pkt_filter_vlan_id 4010,123196
+cmdline_parse_token_string_t cmd_pkt_filter_queue 4013,123327
+cmdline_parse_token_num_t cmd_pkt_filter_queue_id 4016,123457
+cmdline_parse_token_string_t cmd_pkt_filter_soft 4019,123588
+cmdline_parse_token_num_t cmd_pkt_filter_soft_id 4022,123715
+cmdline_parse_token_string_t cmd_pkt_filter_add_signature_filter 4027,123848
+cmdline_parse_inst_t cmd_add_signature_filter 4030,124013
+cmdline_parse_token_string_t cmd_pkt_filter_upd_signature_filter 4055,124713
+cmdline_parse_inst_t cmd_upd_signature_filter 4058,124878
+cmdline_parse_token_string_t cmd_pkt_filter_rm_signature_filter 4083,125581
+cmdline_parse_inst_t cmd_rm_signature_filter 4086,125744
+cmdline_parse_token_string_t cmd_pkt_filter_add_perfect_filter 4109,126376
+cmdline_parse_inst_t cmd_add_perfect_filter 4112,126537
+cmdline_parse_token_string_t cmd_pkt_filter_upd_perfect_filter 4139,127298
+cmdline_parse_inst_t cmd_upd_perfect_filter 4142,127459
+cmdline_parse_token_string_t cmd_pkt_filter_rm_perfect_filter 4169,128223
+cmdline_parse_inst_t cmd_rm_perfect_filter 4172,128382
+struct cmd_pkt_filter_masks_result 4197,129107
+	cmdline_fixed_string_t filter_mask;4198,129144
+	uint8_t  port_id;4199,129181
+	cmdline_fixed_string_t src_mask;4200,129200
+	uint32_t ip_src_mask;4201,129234
+	uint16_t ipv6_src_mask;4202,129257
+	uint16_t port_src_mask;4203,129282
+	cmdline_fixed_string_t dst_mask;4204,129307
+	uint32_t ip_dst_mask;4205,129341
+	uint16_t ipv6_dst_mask;4206,129364
+	uint16_t port_dst_mask;4207,129389
+	cmdline_fixed_string_t flexbytes;4208,129414
+	uint8_t flexbytes_value;4209,129449
+	cmdline_fixed_string_t vlan_id;4210,129475
+	uint8_t  vlan_id_value;4211,129508
+	cmdline_fixed_string_t vlan_prio;4212,129533
+	uint8_t  vlan_prio_value;4213,129568
+	cmdline_fixed_string_t only_ip_flow;4214,129595
+	uint8_t  only_ip_flow_value;4215,129633
+	cmdline_fixed_string_t comp_ipv6_dst;4216,129663
+	uint8_t  comp_ipv6_dst_value;4217,129702
+cmd_pkt_filter_masks_parsed(4221,129749
+cmdline_parse_token_string_t cmd_pkt_filter_masks_filter_mask 4242,130478
+cmdline_parse_token_num_t cmd_pkt_filter_masks_port_id 4245,130643
+cmdline_parse_token_string_t cmd_pkt_filter_masks_only_ip_flow 4248,130785
+cmdline_parse_token_num_t cmd_pkt_filter_masks_only_ip_flow_value 4251,130948
+cmdline_parse_token_string_t cmd_pkt_filter_masks_src_mask 4254,131112
+cmdline_parse_token_num_t cmd_pkt_filter_masks_ip_src_mask 4257,131263
+cmdline_parse_token_num_t cmd_pkt_filter_masks_port_src_mask 4260,131414
+cmdline_parse_token_string_t cmd_pkt_filter_masks_dst_mask 4263,131569
+cmdline_parse_token_num_t cmd_pkt_filter_masks_ip_dst_mask 4266,131720
+cmdline_parse_token_num_t cmd_pkt_filter_masks_port_dst_mask 4269,131871
+cmdline_parse_token_string_t cmd_pkt_filter_masks_flexbytes 4272,132026
+cmdline_parse_token_num_t cmd_pkt_filter_masks_flexbytes_value 4275,132180
+cmdline_parse_token_string_t cmd_pkt_filter_masks_vlan_id 4278,132338
+cmdline_parse_token_num_t cmd_pkt_filter_masks_vlan_id_value 4281,132486
+cmdline_parse_token_string_t cmd_pkt_filter_masks_vlan_prio 4284,132640
+cmdline_parse_token_num_t cmd_pkt_filter_masks_vlan_prio_value 4287,132794
+cmdline_parse_inst_t cmd_set_masks_filter 4291,132953
+cmd_pkt_filter_masks_ipv6_parsed(4317,133849
+cmdline_parse_token_string_t cmd_pkt_filter_masks_filter_mask_ipv6 4340,134672
+cmdline_parse_token_num_t cmd_pkt_filter_masks_src_mask_ipv6_value 4343,134847
+cmdline_parse_token_num_t cmd_pkt_filter_masks_dst_mask_ipv6_value 4346,135008
+cmdline_parse_token_string_t cmd_pkt_filter_masks_comp_ipv6_dst 4350,135170
+cmdline_parse_token_num_t cmd_pkt_filter_masks_comp_ipv6_dst_value 4353,135334
+cmdline_parse_inst_t cmd_set_ipv6_masks_filter 4357,135501
+struct cmd_link_flow_ctrl_set_result 4385,136568
+	cmdline_fixed_string_t set;4386,136607
+	cmdline_fixed_string_t flow_ctrl;4387,136636
+	cmdline_fixed_string_t rx;4388,136671
+	cmdline_fixed_string_t rx_lfc_mode;4389,136699
+	cmdline_fixed_string_t tx;4390,136736
+	cmdline_fixed_string_t tx_lfc_mode;4391,136764
+	cmdline_fixed_string_t mac_ctrl_frame_fwd;4392,136801
+	cmdline_fixed_string_t mac_ctrl_frame_fwd_mode;4393,136845
+	cmdline_fixed_string_t autoneg_str;4394,136894
+	cmdline_fixed_string_t autoneg;4395,136931
+	cmdline_fixed_string_t hw_str;4396,136964
+	uint32_t high_water;4397,136996
+	cmdline_fixed_string_t lw_str;4398,137018
+	uint32_t low_water;4399,137050
+	cmdline_fixed_string_t pt_str;4400,137071
+	uint16_t pause_time;4401,137103
+	cmdline_fixed_string_t xon_str;4402,137125
+	uint16_t send_xon;4403,137158
+	uint8_t  port_id;4404,137178
+cmdline_parse_token_string_t cmd_lfc_set_set 4407,137201
+cmdline_parse_token_string_t cmd_lfc_set_flow_ctrl 4410,137329
+cmdline_parse_token_string_t cmd_lfc_set_rx 4413,137475
+cmdline_parse_token_string_t cmd_lfc_set_rx_mode 4416,137600
+cmdline_parse_token_string_t cmd_lfc_set_tx 4419,137743
+cmdline_parse_token_string_t cmd_lfc_set_tx_mode 4422,137868
+cmdline_parse_token_string_t cmd_lfc_set_high_water_str 4425,138011
+cmdline_parse_token_num_t cmd_lfc_set_high_water 4428,138160
+cmdline_parse_token_string_t cmd_lfc_set_low_water_str 4431,138297
+cmdline_parse_token_num_t cmd_lfc_set_low_water 4434,138444
+cmdline_parse_token_string_t cmd_lfc_set_pause_time_str 4437,138579
+cmdline_parse_token_num_t cmd_lfc_set_pause_time 4440,138728
+cmdline_parse_token_string_t cmd_lfc_set_send_xon_str 4443,138865
+cmdline_parse_token_num_t cmd_lfc_set_send_xon 4446,139011
+cmdline_parse_token_string_t cmd_lfc_set_mac_ctrl_frame_fwd_mode 4449,139144
+cmdline_parse_token_string_t cmd_lfc_set_mac_ctrl_frame_fwd 4452,139322
+cmdline_parse_token_string_t cmd_lfc_set_autoneg_str 4455,139488
+cmdline_parse_token_string_t cmd_lfc_set_autoneg 4458,139636
+cmdline_parse_token_num_t cmd_lfc_set_portid 4461,139775
+cmdline_parse_inst_t cmd_link_flow_control_set 4470,140037
+cmdline_parse_inst_t cmd_link_flow_control_set_rx 4496,140857
+cmdline_parse_inst_t cmd_link_flow_control_set_tx 4511,141268
+cmdline_parse_inst_t cmd_link_flow_control_set_hw 4526,141679
+cmdline_parse_inst_t cmd_link_flow_control_set_lw 4541,142120
+cmdline_parse_inst_t cmd_link_flow_control_set_pt 4556,142557
+cmdline_parse_inst_t cmd_link_flow_control_set_xon 4571,142998
+cmdline_parse_inst_t cmd_link_flow_control_set_macfwd 4586,143433
+cmdline_parse_inst_t cmd_link_flow_control_set_autoneg 4601,143910
+cmd_link_flow_ctrl_set_parsed(4617,144362
+struct cmd_priority_flow_ctrl_set_result 4690,146672
+	cmdline_fixed_string_t set;4691,146715
+	cmdline_fixed_string_t pfc_ctrl;4692,146744
+	cmdline_fixed_string_t rx;4693,146778
+	cmdline_fixed_string_t rx_pfc_mode;4694,146806
+	cmdline_fixed_string_t tx;4695,146843
+	cmdline_fixed_string_t tx_pfc_mode;4696,146871
+	uint32_t high_water;4697,146908
+	uint32_t low_water;4698,146930
+	uint16_t pause_time;4699,146951
+	uint8_t  priority;4700,146973
+	uint8_t  port_id;4701,146993
+cmd_priority_flow_ctrl_set_parsed(4705,147028
+cmdline_parse_token_string_t cmd_pfc_set_set 4737,148286
+cmdline_parse_token_string_t cmd_pfc_set_flow_ctrl 4740,148418
+cmdline_parse_token_string_t cmd_pfc_set_rx 4743,148566
+cmdline_parse_token_string_t cmd_pfc_set_rx_mode 4746,148695
+cmdline_parse_token_string_t cmd_pfc_set_tx 4749,148842
+cmdline_parse_token_string_t cmd_pfc_set_tx_mode 4752,148971
+cmdline_parse_token_num_t cmd_pfc_set_high_water 4755,149118
+cmdline_parse_token_num_t cmd_pfc_set_low_water 4758,149259
+cmdline_parse_token_num_t cmd_pfc_set_pause_time 4761,149398
+cmdline_parse_token_num_t cmd_pfc_set_priority 4764,149539
+cmdline_parse_token_num_t cmd_pfc_set_portid 4767,149675
+cmdline_parse_inst_t cmd_priority_flow_control_set 4771,149809
+struct cmd_reset_result 4793,150481
+	cmdline_fixed_string_t reset;4794,150507
+	cmdline_fixed_string_t def;4795,150538
+static void cmd_reset_parsed(4798,150571
+cmdline_parse_token_string_t cmd_reset_set 4806,150816
+cmdline_parse_token_string_t cmd_reset_def 4808,150927
+cmdline_parse_inst_t cmd_reset 4812,151046
+struct cmd_start_result 4824,151300
+	cmdline_fixed_string_t start;4825,151326
+cmdline_parse_token_string_t cmd_start_start 4828,151361
+static void cmd_start_parsed(4831,151477
+cmdline_parse_inst_t cmd_start 4838,151681
+struct cmd_start_tx_first_result 4849,151907
+	cmdline_fixed_string_t start;4850,151942
+	cmdline_fixed_string_t tx_first;4851,151973
+cmd_start_tx_first_parsed(4855,152023
+cmdline_parse_token_string_t cmd_start_tx_first_start 4862,152218
+cmdline_parse_token_string_t cmd_start_tx_first_tx_first 4865,152356
+cmdline_parse_inst_t cmd_start_tx_first 4869,152504
+struct cmd_set_link_up_result 4881,152802
+	cmdline_fixed_string_t set;4882,152834
+	cmdline_fixed_string_t link_up;4883,152863
+	cmdline_fixed_string_t port;4884,152896
+	uint8_t port_id;4885,152926
+cmdline_parse_token_string_t cmd_set_link_up_set 4888,152948
+cmdline_parse_token_string_t cmd_set_link_up_link_up 4890,153069
+cmdline_parse_token_string_t cmd_set_link_up_port 4893,153206
+cmdline_parse_token_num_t cmd_set_link_up_port_id 4895,153330
+static void cmd_set_link_up_parsed(4898,153454
+cmdline_parse_inst_t cmd_set_link_up 4906,153720
+struct cmd_set_link_down_result 4920,154043
+	cmdline_fixed_string_t set;4921,154077
+	cmdline_fixed_string_t link_down;4922,154106
+	cmdline_fixed_string_t port;4923,154141
+	uint8_t port_id;4924,154171
+cmdline_parse_token_string_t cmd_set_link_down_set 4927,154193
+cmdline_parse_token_string_t cmd_set_link_down_link_down 4929,154318
+cmdline_parse_token_string_t cmd_set_link_down_port 4932,154465
+cmdline_parse_token_num_t cmd_set_link_down_port_id 4934,154593
+static void cmd_set_link_down_parsed(4937,154721
+cmdline_parse_inst_t cmd_set_link_down 4946,154990
+struct cmd_showcfg_result 4960,155324
+	cmdline_fixed_string_t show;4961,155352
+	cmdline_fixed_string_t cfg;4962,155382
+	cmdline_fixed_string_t what;4963,155411
+static void cmd_showcfg_parsed(4966,155445
+cmdline_parse_token_string_t cmd_showcfg_show 4979,155840
+cmdline_parse_token_string_t cmd_showcfg_port 4981,155956
+cmdline_parse_token_string_t cmd_showcfg_what 4983,156073
+cmdline_parse_inst_t cmd_showcfg 4987,156205
+struct cmd_showportall_result 5000,156475
+	cmdline_fixed_string_t show;5001,156507
+	cmdline_fixed_string_t port;5002,156537
+	cmdline_fixed_string_t what;5003,156567
+	cmdline_fixed_string_t all;5004,156597
+static void cmd_showportall_parsed(5007,156630
+cmdline_parse_token_string_t cmd_showportall_show 5032,157373
+cmdline_parse_token_string_t cmd_showportall_port 5035,157508
+cmdline_parse_token_string_t cmd_showportall_what 5037,157632
+cmdline_parse_token_string_t cmd_showportall_all 5040,157782
+cmdline_parse_inst_t cmd_showportall 5042,157903
+struct cmd_showport_result 5056,158240
+	cmdline_fixed_string_t show;5057,158269
+	cmdline_fixed_string_t port;5058,158299
+	cmdline_fixed_string_t what;5059,158329
+	uint8_t portnum;5060,158359
+static void cmd_showport_parsed(5063,158381
+cmdline_parse_token_string_t cmd_showport_show 5081,158989
+cmdline_parse_token_string_t cmd_showport_port 5084,159118
+cmdline_parse_token_string_t cmd_showport_what 5086,159236
+cmdline_parse_token_num_t cmd_showport_portnum 5089,159380
+cmdline_parse_inst_t cmd_showport 5092,159498
+struct cmd_read_reg_result 5106,159841
+	cmdline_fixed_string_t read;5107,159870
+	cmdline_fixed_string_t reg;5108,159900
+	uint8_t port_id;5109,159929
+	uint32_t reg_off;5110,159947
+cmd_read_reg_parsed(5114,159982
+cmdline_parse_token_string_t cmd_read_reg_read 5122,160217
+cmdline_parse_token_string_t cmd_read_reg_reg 5124,160335
+cmdline_parse_token_num_t cmd_read_reg_port_id 5126,160450
+cmdline_parse_token_num_t cmd_read_reg_reg_off 5128,160567
+cmdline_parse_inst_t cmd_read_reg 5131,160686
+struct cmd_read_reg_bit_field_result 5145,161004
+	cmdline_fixed_string_t read;5146,161043
+	cmdline_fixed_string_t regfield;5147,161073
+	uint8_t port_id;5148,161107
+	uint32_t reg_off;5149,161125
+	uint8_t bit1_pos;5150,161144
+	uint8_t bit2_pos;5151,161163
+cmd_read_reg_bit_field_parsed(5155,161198
+cmdline_parse_token_string_t cmd_read_reg_bit_field_read 5164,161506
+cmdline_parse_token_string_t cmd_read_reg_bit_field_regfield 5167,161649
+cmdline_parse_token_num_t cmd_read_reg_bit_field_port_id 5170,161804
+cmdline_parse_token_num_t cmd_read_reg_bit_field_reg_off 5173,161950
+cmdline_parse_token_num_t cmd_read_reg_bit_field_bit1_pos 5176,162097
+cmdline_parse_token_num_t cmd_read_reg_bit_field_bit2_pos 5179,162245
+cmdline_parse_inst_t cmd_read_reg_bit_field 5183,162394
+struct cmd_read_reg_bit_result 5200,162939
+	cmdline_fixed_string_t read;5201,162972
+	cmdline_fixed_string_t regbit;5202,163002
+	uint8_t port_id;5203,163034
+	uint32_t reg_off;5204,163052
+	uint8_t bit_pos;5205,163071
+cmd_read_reg_bit_parsed(5209,163105
+cmdline_parse_token_string_t cmd_read_reg_bit_read 5217,163360
+cmdline_parse_token_string_t cmd_read_reg_bit_regbit 5219,163486
+cmdline_parse_token_num_t cmd_read_reg_bit_port_id 5222,163623
+cmdline_parse_token_num_t cmd_read_reg_bit_reg_off 5224,163748
+cmdline_parse_token_num_t cmd_read_reg_bit_bit_pos 5226,163874
+cmdline_parse_inst_t cmd_read_reg_bit 5229,164000
+struct cmd_write_reg_result 5244,164401
+	cmdline_fixed_string_t write;5245,164431
+	cmdline_fixed_string_t reg;5246,164462
+	uint8_t port_id;5247,164491
+	uint32_t reg_off;5248,164509
+	uint32_t value;5249,164528
+cmd_write_reg_parsed(5253,164561
+cmdline_parse_token_string_t cmd_write_reg_write 5261,164808
+cmdline_parse_token_string_t cmd_write_reg_reg 5263,164931
+cmdline_parse_token_num_t cmd_write_reg_port_id 5265,165048
+cmdline_parse_token_num_t cmd_write_reg_reg_off 5267,165167
+cmdline_parse_token_num_t cmd_write_reg_value 5269,165287
+cmdline_parse_inst_t cmd_write_reg 5272,165404
+struct cmd_write_reg_bit_field_result 5287,165773
+	cmdline_fixed_string_t write;5288,165813
+	cmdline_fixed_string_t regfield;5289,165844
+	uint8_t port_id;5290,165878
+	uint32_t reg_off;5291,165896
+	uint8_t bit1_pos;5292,165915
+	uint8_t bit2_pos;5293,165934
+	uint32_t value;5294,165953
+cmd_write_reg_bit_field_parsed(5298,165986
+cmdline_parse_token_string_t cmd_write_reg_bit_field_write 5307,166304
+cmdline_parse_token_string_t cmd_write_reg_bit_field_regfield 5310,166452
+cmdline_parse_token_num_t cmd_write_reg_bit_field_port_id 5313,166609
+cmdline_parse_token_num_t cmd_write_reg_bit_field_reg_off 5316,166757
+cmdline_parse_token_num_t cmd_write_reg_bit_field_bit1_pos 5319,166906
+cmdline_parse_token_num_t cmd_write_reg_bit_field_bit2_pos 5322,167056
+cmdline_parse_token_num_t cmd_write_reg_bit_field_value 5325,167206
+cmdline_parse_inst_t cmd_write_reg_bit_field 5329,167352
+struct cmd_write_reg_bit_result 5347,167958
+	cmdline_fixed_string_t write;5348,167992
+	cmdline_fixed_string_t regbit;5349,168023
+	uint8_t port_id;5350,168055
+	uint32_t reg_off;5351,168073
+	uint8_t bit_pos;5352,168092
+	uint8_t value;5353,168110
+cmd_write_reg_bit_parsed(5357,168142
+cmdline_parse_token_string_t cmd_write_reg_bit_write 5365,168409
+cmdline_parse_token_string_t cmd_write_reg_bit_regbit 5368,168545
+cmdline_parse_token_num_t cmd_write_reg_bit_port_id 5371,168684
+cmdline_parse_token_num_t cmd_write_reg_bit_reg_off 5373,168811
+cmdline_parse_token_num_t cmd_write_reg_bit_bit_pos 5375,168939
+cmdline_parse_token_num_t cmd_write_reg_bit_value 5377,169066
+cmdline_parse_inst_t cmd_write_reg_bit 5380,169190
+struct cmd_read_rxd_txd_result 5396,169665
+	cmdline_fixed_string_t read;5397,169698
+	cmdline_fixed_string_t rxd_txd;5398,169728
+	uint8_t port_id;5399,169761
+	uint16_t queue_id;5400,169779
+	uint16_t desc_id;5401,169799
+cmd_read_rxd_txd_parsed(5405,169834
+cmdline_parse_token_string_t cmd_read_rxd_txd_read 5417,170234
+cmdline_parse_token_string_t cmd_read_rxd_txd_rxd_txd 5419,170360
+cmdline_parse_token_num_t cmd_read_rxd_txd_port_id 5422,170500
+cmdline_parse_token_num_t cmd_read_rxd_txd_queue_id 5424,170625
+cmdline_parse_token_num_t cmd_read_rxd_txd_desc_id 5426,170753
+cmdline_parse_inst_t cmd_read_rxd_txd 5429,170880
+struct cmd_quit_result 5444,171252
+	cmdline_fixed_string_t quit;5445,171277
+static void cmd_quit_parsed(5448,171311
+cmdline_parse_token_string_t cmd_quit_quit 5456,171496
+cmdline_parse_inst_t cmd_quit 5459,171607
+struct cmd_mac_addr_result 5470,171816
+	cmdline_fixed_string_t mac_addr_cmd;5471,171845
+	cmdline_fixed_string_t what;5472,171883
+	uint8_t port_num;5473,171913
+	struct ether_addr address;5474,171932
+static void cmd_mac_addr_parsed(5477,171964
+cmdline_parse_token_string_t cmd_mac_addr_cmd 5495,172467
+cmdline_parse_token_string_t cmd_mac_addr_what 5498,172600
+cmdline_parse_token_num_t cmd_mac_addr_portnum 5501,172728
+cmdline_parse_token_etheraddr_t cmd_mac_addr_addr 5503,172847
+cmdline_parse_inst_t cmd_mac_addr 5506,172968
+struct cmd_set_qmap_result 5522,173346
+	cmdline_fixed_string_t set;5523,173375
+	cmdline_fixed_string_t qmap;5524,173404
+	cmdline_fixed_string_t what;5525,173434
+	uint8_t port_id;5526,173464
+	uint16_t queue_id;5527,173482
+	uint8_t map_value;5528,173502
+cmd_set_qmap_parsed(5532,173538
+cmdline_parse_token_string_t cmd_setqmap_set 5542,173858
+cmdline_parse_token_string_t cmd_setqmap_qmap 5545,173977
+cmdline_parse_token_string_t cmd_setqmap_what 5548,174104
+cmdline_parse_token_num_t cmd_setqmap_portid 5551,174227
+cmdline_parse_token_num_t cmd_setqmap_queueid 5554,174351
+cmdline_parse_token_num_t cmd_setqmap_mapvalue 5557,174478
+cmdline_parse_inst_t cmd_set_qmap 5561,174607
+struct cmd_set_uc_hash_table 5577,175015
+	cmdline_fixed_string_t set;5578,175046
+	cmdline_fixed_string_t port;5579,175075
+	uint8_t port_id;5580,175105
+	cmdline_fixed_string_t what;5581,175123
+	struct ether_addr address;5582,175153
+	cmdline_fixed_string_t mode;5583,175181
+cmd_set_uc_hash_parsed(5587,175227
+cmdline_parse_token_string_t cmd_set_uc_hash_set 5604,175705
+cmdline_parse_token_string_t cmd_set_uc_hash_port 5607,175830
+cmdline_parse_token_num_t cmd_set_uc_hash_portid 5610,175958
+cmdline_parse_token_string_t cmd_set_uc_hash_what 5613,176088
+cmdline_parse_token_etheraddr_t cmd_set_uc_hash_mac 5616,176215
+cmdline_parse_token_string_t cmd_set_uc_hash_mode 5619,176342
+cmdline_parse_inst_t cmd_set_uc_hash_filter 5623,176473
+struct cmd_set_uc_all_hash_table 5638,176866
+	cmdline_fixed_string_t set;5639,176901
+	cmdline_fixed_string_t port;5640,176930
+	uint8_t port_id;5641,176960
+	cmdline_fixed_string_t what;5642,176978
+	cmdline_fixed_string_t value;5643,177008
+	cmdline_fixed_string_t mode;5644,177039
+cmd_set_uc_all_hash_parsed(5648,177085
+cmdline_parse_token_string_t cmd_set_uc_all_hash_set 5665,177599
+cmdline_parse_token_string_t cmd_set_uc_all_hash_port 5668,177732
+cmdline_parse_token_num_t cmd_set_uc_all_hash_portid 5671,177868
+cmdline_parse_token_string_t cmd_set_uc_all_hash_what 5674,178006
+cmdline_parse_token_string_t cmd_set_uc_all_hash_value 5677,178141
+cmdline_parse_token_string_t cmd_set_uc_all_hash_mode 5680,178276
+cmdline_parse_inst_t cmd_set_uc_all_hash_filter 5684,178415
+struct cmd_set_vf_traffic 5700,178872
+	cmdline_fixed_string_t set;5701,178900
+	cmdline_fixed_string_t port;5702,178929
+	uint8_t port_id;5703,178959
+	cmdline_fixed_string_t vf;5704,178977
+	uint8_t vf_id;5705,179005
+	cmdline_fixed_string_t what;5706,179021
+	cmdline_fixed_string_t mode;5707,179051
+cmd_set_vf_traffic_parsed(5711,179097
+cmdline_parse_token_string_t cmd_setvf_traffic_set 5722,179478
+cmdline_parse_token_string_t cmd_setvf_traffic_port 5725,179602
+cmdline_parse_token_num_t cmd_setvf_traffic_portid 5728,179729
+cmdline_parse_token_string_t cmd_setvf_traffic_vf 5731,179858
+cmdline_parse_token_num_t cmd_setvf_traffic_vfid 5734,179979
+cmdline_parse_token_string_t cmd_setvf_traffic_what 5737,180104
+cmdline_parse_token_string_t cmd_setvf_traffic_mode 5740,180232
+cmdline_parse_inst_t cmd_set_vf_traffic 5744,180362
+struct cmd_set_vf_rxmode 5761,180840
+	cmdline_fixed_string_t set;5762,180867
+	cmdline_fixed_string_t port;5763,180896
+	uint8_t port_id;5764,180926
+	cmdline_fixed_string_t vf;5765,180944
+	uint8_t vf_id;5766,180972
+	cmdline_fixed_string_t what;5767,180988
+	cmdline_fixed_string_t mode;5768,181018
+	cmdline_fixed_string_t on;5769,181048
+cmd_set_vf_rxmode_parsed(5773,181092
+cmdline_parse_token_string_t cmd_set_vf_rxmode_set 5799,181891
+cmdline_parse_token_string_t cmd_set_vf_rxmode_port 5802,182014
+cmdline_parse_token_num_t cmd_set_vf_rxmode_portid 5805,182140
+cmdline_parse_token_string_t cmd_set_vf_rxmode_vf 5808,182268
+cmdline_parse_token_num_t cmd_set_vf_rxmode_vfid 5811,182388
+cmdline_parse_token_string_t cmd_set_vf_rxmode_what 5814,182512
+cmdline_parse_token_string_t cmd_set_vf_rxmode_mode 5817,182640
+cmdline_parse_token_string_t cmd_set_vf_rxmode_on 5820,182779
+cmdline_parse_inst_t cmd_set_vf_rxmode 5824,182904
+struct cmd_vf_mac_addr_result 5842,183420
+	cmdline_fixed_string_t mac_addr_cmd;5843,183452
+	cmdline_fixed_string_t what;5844,183490
+	cmdline_fixed_string_t port;5845,183520
+	uint8_t port_num;5846,183550
+	cmdline_fixed_string_t vf;5847,183569
+	uint8_t vf_num;5848,183597
+	struct ether_addr address;5849,183614
+static void cmd_vf_mac_addr_parsed(5852,183646
+cmdline_parse_token_string_t cmd_vf_mac_addr_cmd 5867,184050
+cmdline_parse_token_string_t cmd_vf_mac_addr_what 5870,184188
+cmdline_parse_token_string_t cmd_vf_mac_addr_port 5873,184314
+cmdline_parse_token_num_t cmd_vf_mac_addr_portnum 5876,184441
+cmdline_parse_token_string_t cmd_vf_mac_addr_vf 5879,184569
+cmdline_parse_token_num_t cmd_vf_mac_addr_vfnum 5882,184690
+cmdline_parse_token_etheraddr_t cmd_vf_mac_addr_addr 5885,184814
+cmdline_parse_inst_t cmd_vf_mac_addr_filter 5889,184944
+struct cmd_vf_rx_vlan_filter 5907,185505
+	cmdline_fixed_string_t rx_vlan;5908,185536
+	cmdline_fixed_string_t what;5909,185569
+	uint16_t vlan_id;5910,185599
+	cmdline_fixed_string_t port;5911,185618
+	uint8_t port_id;5912,185648
+	cmdline_fixed_string_t vf;5913,185666
+	uint64_t vf_mask;5914,185694
+cmd_vf_rx_vlan_filter_parsed(5918,185729
+cmdline_parse_token_string_t cmd_vf_rx_vlan_filter_rx_vlan 5930,186089
+cmdline_parse_token_string_t cmd_vf_rx_vlan_filter_what 5933,186232
+cmdline_parse_token_num_t cmd_vf_rx_vlan_filter_vlanid 5936,186368
+cmdline_parse_token_string_t cmd_vf_rx_vlan_filter_port 5939,186505
+cmdline_parse_token_num_t cmd_vf_rx_vlan_filter_portid 5942,186639
+cmdline_parse_token_string_t cmd_vf_rx_vlan_filter_vf 5945,186775
+cmdline_parse_token_num_t cmd_vf_rx_vlan_filter_vf_mask 5948,186903
+cmdline_parse_inst_t cmd_vf_rxvlan_filter 5952,187042
+struct cmd_queue_rate_limit_result 5970,187604
+	cmdline_fixed_string_t set;5971,187641
+	cmdline_fixed_string_t port;5972,187670
+	uint8_t port_num;5973,187700
+	cmdline_fixed_string_t queue;5974,187719
+	uint8_t queue_num;5975,187750
+	cmdline_fixed_string_t rate;5976,187770
+	uint16_t rate_num;5977,187800
+static void cmd_queue_rate_limit_parsed(5980,187824
+cmdline_parse_token_string_t cmd_queue_rate_limit_set 5997,188358
+cmdline_parse_token_string_t cmd_queue_rate_limit_port 6000,188493
+cmdline_parse_token_num_t cmd_queue_rate_limit_portnum 6003,188631
+cmdline_parse_token_string_t cmd_queue_rate_limit_queue 6006,188769
+cmdline_parse_token_num_t cmd_queue_rate_limit_queuenum 6009,188910
+cmdline_parse_token_string_t cmd_queue_rate_limit_rate 6012,189050
+cmdline_parse_token_num_t cmd_queue_rate_limit_ratenum 6015,189188
+cmdline_parse_inst_t cmd_queue_rate_limit 6019,189328
+struct cmd_vf_rate_limit_result 6037,189915
+	cmdline_fixed_string_t set;6038,189949
+	cmdline_fixed_string_t port;6039,189978
+	uint8_t port_num;6040,190008
+	cmdline_fixed_string_t vf;6041,190027
+	uint8_t vf_num;6042,190055
+	cmdline_fixed_string_t rate;6043,190072
+	uint16_t rate_num;6044,190102
+	cmdline_fixed_string_t q_msk;6045,190122
+	uint64_t q_msk_val;6046,190153
+static void cmd_vf_rate_limit_parsed(6049,190178
+cmdline_parse_token_string_t cmd_vf_rate_limit_set 6067,190752
+cmdline_parse_token_string_t cmd_vf_rate_limit_port 6070,190881
+cmdline_parse_token_num_t cmd_vf_rate_limit_portnum 6073,191013
+cmdline_parse_token_string_t cmd_vf_rate_limit_vf 6076,191145
+cmdline_parse_token_num_t cmd_vf_rate_limit_vfnum 6079,191271
+cmdline_parse_token_string_t cmd_vf_rate_limit_rate 6082,191399
+cmdline_parse_token_num_t cmd_vf_rate_limit_ratenum 6085,191531
+cmdline_parse_token_string_t cmd_vf_rate_limit_q_msk 6088,191664
+cmdline_parse_token_num_t cmd_vf_rate_limit_q_msk_val 6091,191804
+cmdline_parse_inst_t cmd_vf_rate_limit 6095,191941
+struct cmd_set_mirror_mask_result 6116,192610
+	cmdline_fixed_string_t set;6117,192646
+	cmdline_fixed_string_t port;6118,192675
+	uint8_t port_id;6119,192705
+	cmdline_fixed_string_t mirror;6120,192723
+	uint8_t rule_id;6121,192755
+	cmdline_fixed_string_t what;6122,192773
+	cmdline_fixed_string_t value;6123,192803
+	cmdline_fixed_string_t dstpool;6124,192834
+	uint8_t dstpool_id;6125,192867
+	cmdline_fixed_string_t on;6126,192888
+cmdline_parse_token_string_t cmd_mirror_mask_set 6129,192920
+cmdline_parse_token_string_t cmd_mirror_mask_port 6132,193049
+cmdline_parse_token_num_t cmd_mirror_mask_portid 6135,193181
+cmdline_parse_token_string_t cmd_mirror_mask_mirror 6138,193311
+cmdline_parse_token_num_t cmd_mirror_mask_ruleid 6141,193454
+cmdline_parse_token_string_t cmd_mirror_mask_what 6144,193584
+cmdline_parse_token_string_t cmd_mirror_mask_value 6147,193735
+cmdline_parse_token_string_t cmd_mirror_mask_dstpool 6150,193867
+cmdline_parse_token_num_t cmd_mirror_mask_poolid 6153,194009
+cmdline_parse_token_string_t cmd_mirror_mask_on 6156,194142
+cmd_set_mirror_mask_parsed(6161,194285
+cmdline_parse_inst_t cmd_set_mirror_mask 6206,195580
+struct cmd_set_mirror_link_result 6227,196232
+	cmdline_fixed_string_t set;6228,196268
+	cmdline_fixed_string_t port;6229,196297
+	uint8_t port_id;6230,196327
+	cmdline_fixed_string_t mirror;6231,196345
+	uint8_t rule_id;6232,196377
+	cmdline_fixed_string_t what;6233,196395
+	cmdline_fixed_string_t dstpool;6234,196425
+	uint8_t dstpool_id;6235,196458
+	cmdline_fixed_string_t on;6236,196479
+cmdline_parse_token_string_t cmd_mirror_link_set 6239,196511
+cmdline_parse_token_string_t cmd_mirror_link_port 6242,196641
+cmdline_parse_token_num_t cmd_mirror_link_portid 6245,196773
+cmdline_parse_token_string_t cmd_mirror_link_mirror 6248,196903
+cmdline_parse_token_num_t cmd_mirror_link_ruleid 6251,197046
+cmdline_parse_token_string_t cmd_mirror_link_what 6254,197179
+cmdline_parse_token_string_t cmd_mirror_link_dstpool 6257,197336
+cmdline_parse_token_num_t cmd_mirror_link_poolid 6260,197478
+cmdline_parse_token_string_t cmd_mirror_link_on 6263,197611
+cmd_set_mirror_link_parsed(6268,197754
+cmdline_parse_inst_t cmd_set_mirror_link 6297,198629
+struct cmd_rm_mirror_rule_result 6317,199202
+	cmdline_fixed_string_t reset;6318,199237
+	cmdline_fixed_string_t port;6319,199268
+	uint8_t port_id;6320,199298
+	cmdline_fixed_string_t mirror;6321,199316
+	uint8_t rule_id;6322,199348
+cmdline_parse_token_string_t cmd_rm_mirror_rule_reset 6325,199370
+cmdline_parse_token_string_t cmd_rm_mirror_rule_port 6328,199508
+cmdline_parse_token_num_t cmd_rm_mirror_rule_portid 6331,199642
+cmdline_parse_token_string_t cmd_rm_mirror_rule_mirror 6334,199774
+cmdline_parse_token_num_t cmd_rm_mirror_rule_ruleid 6337,199919
+cmd_reset_mirror_rule_parsed(6342,200064
+cmdline_parse_inst_t cmd_reset_mirror_rule 6354,200448
+struct cmd_dump_result 6370,200904
+	cmdline_fixed_string_t dump;6371,200929
+dump_struct_sizes(6375,200975
+#define DUMP_SIZE(6377,201001
+#undef DUMP_SIZE6383,201231
+static void cmd_dump_parsed(6386,201251
+cmdline_parse_token_string_t cmd_dump_dump 6408,201982
+cmdline_parse_inst_t cmd_dump 6418,202217
+struct cmd_dump_one_result 6430,202552
+	cmdline_fixed_string_t dump;6431,202581
+	cmdline_fixed_string_t name;6432,202611
+static void cmd_dump_one_parsed(6435,202645
+cmdline_parse_token_string_t cmd_dump_one_dump 6459,203249
+cmdline_parse_token_string_t cmd_dump_one_name 6463,203391
+cmdline_parse_inst_t cmd_dump_one 6466,203508
+struct cmd_ethertype_filter_result 6478,203883
+	cmdline_fixed_string_t filter;6479,203920
+	uint8_t port_id;6480,203952
+	cmdline_fixed_string_t ethertype;6481,203970
+	uint16_t ethertype_value;6482,204005
+	cmdline_fixed_string_t priority;6483,204032
+	cmdline_fixed_string_t priority_en;6484,204066
+	uint8_t priority_value;6485,204103
+	cmdline_fixed_string_t queue;6486,204128
+	uint16_t queue_id;6487,204159
+	cmdline_fixed_string_t index;6488,204179
+	uint16_t index_value;6489,204210
+cmd_ethertype_filter_parsed(6493,204249
+cmdline_parse_token_num_t cmd_ethertype_filter_port_id 6522,205221
+cmdline_parse_token_string_t cmd_ethertype_filter_ethertype 6525,205358
+cmdline_parse_token_ipaddr_t cmd_ethertype_filter_ethertype_value 6528,205511
+cmdline_parse_token_string_t cmd_ethertype_filter_priority 6531,205668
+cmdline_parse_token_string_t cmd_ethertype_filter_priority_en 6534,205818
+cmdline_parse_token_num_t cmd_ethertype_filter_priority_value 6537,205980
+cmdline_parse_token_string_t cmd_ethertype_filter_queue 6540,206131
+cmdline_parse_token_num_t cmd_ethertype_filter_queue_id 6543,206272
+cmdline_parse_token_string_t cmd_ethertype_filter_index 6546,206412
+cmdline_parse_token_num_t cmd_ethertype_filter_index_value 6549,206553
+cmdline_parse_token_string_t cmd_ethertype_filter_add_filter 6552,206699
+cmdline_parse_inst_t cmd_add_ethertype_filter 6555,206861
+cmdline_parse_token_string_t cmd_ethertype_filter_remove_filter 6575,207507
+cmdline_parse_inst_t cmd_remove_ethertype_filter 6578,207676
+cmdline_parse_token_string_t cmd_ethertype_filter_get_filter 6590,208022
+cmdline_parse_inst_t cmd_get_ethertype_filter 6593,208185
+struct cmd_set_syn_filter_result 6607,208552
+	cmdline_fixed_string_t filter;6608,208587
+	uint8_t port_id;6609,208619
+	cmdline_fixed_string_t priority;6610,208637
+	cmdline_fixed_string_t high;6611,208671
+	cmdline_fixed_string_t queue;6612,208701
+	uint16_t  queue_id;6613,208732
+cmd_set_syn_filter_parsed(6617,208769
+cmdline_parse_token_num_t cmd_syn_filter_portid 6640,209487
+cmdline_parse_token_string_t cmd_syn_filter_priority 6643,209615
+cmdline_parse_token_string_t cmd_syn_filter_high 6646,209757
+cmdline_parse_token_string_t cmd_syn_filter_queue 6649,209891
+cmdline_parse_token_num_t cmd_syn_filter_queue_id 6652,210024
+cmdline_parse_token_string_t cmd_syn_filter_add_filter 6655,210156
+cmdline_parse_token_string_t cmd_syn_filter_remove_filter 6658,210304
+cmdline_parse_inst_t cmd_add_syn_filter 6661,210458
+cmdline_parse_inst_t cmd_remove_syn_filter 6675,210830
+cmdline_parse_token_string_t cmd_syn_filter_get_filter 6686,211071
+cmdline_parse_inst_t cmd_get_syn_filter 6690,211220
+struct cmd_2tuple_filter_result 6702,211493
+	cmdline_fixed_string_t filter;6703,211527
+	uint8_t port_id;6704,211559
+	cmdline_fixed_string_t protocol;6705,211577
+	uint8_t protocol_value;6706,211611
+	uint8_t protocol_mask;6707,211636
+	cmdline_fixed_string_t dst_port;6708,211660
+	uint16_t dst_port_value;6709,211694
+	uint16_t dst_port_mask;6710,211720
+	cmdline_fixed_string_t flags;6711,211745
+	uint8_t flags_value;6712,211776
+	cmdline_fixed_string_t priority;6713,211798
+	uint8_t priority_value;6714,211832
+	cmdline_fixed_string_t queue;6715,211857
+	uint16_t queue_id;6716,211888
+	cmdline_fixed_string_t index;6717,211908
+	uint16_t index_value;6718,211939
+cmd_2tuple_filter_parsed(6722,211978
+cmdline_parse_token_num_t cmd_2tuple_filter_port_id 6752,213070
+cmdline_parse_token_string_t cmd_2tuple_filter_protocol 6755,213201
+cmdline_parse_token_num_t cmd_2tuple_filter_protocol_value 6758,213346
+cmdline_parse_token_num_t cmd_2tuple_filter_protocol_mask 6761,213492
+cmdline_parse_token_string_t cmd_2tuple_filter_dst_port 6764,213635
+cmdline_parse_token_num_t cmd_2tuple_filter_dst_port_value 6767,213779
+cmdline_parse_token_num_t cmd_2tuple_filter_dst_port_mask 6770,213925
+cmdline_parse_token_string_t cmd_2tuple_filter_flags 6773,214069
+cmdline_parse_token_num_t cmd_2tuple_filter_flags_value 6776,214204
+cmdline_parse_token_string_t cmd_2tuple_filter_priority 6779,214343
+cmdline_parse_token_num_t cmd_2tuple_filter_priority_value 6782,214487
+cmdline_parse_token_string_t cmd_2tuple_filter_queue 6785,214632
+cmdline_parse_token_num_t cmd_2tuple_filter_queue_id 6788,214767
+cmdline_parse_token_string_t cmd_2tuple_filter_index 6791,214901
+cmdline_parse_token_num_t cmd_2tuple_filter_index_value 6794,215036
+cmdline_parse_token_string_t cmd_2tuple_filter_add_filter 6797,215176
+cmdline_parse_inst_t cmd_add_2tuple_filter 6800,215329
+cmdline_parse_token_string_t cmd_2tuple_filter_remove_filter 6825,216138
+cmdline_parse_inst_t cmd_remove_2tuple_filter 6828,216297
+cmdline_parse_token_string_t cmd_2tuple_filter_get_filter 6840,216621
+cmdline_parse_inst_t cmd_get_2tuple_filter 6843,216774
+struct cmd_5tuple_filter_result 6857,217131
+	cmdline_fixed_string_t filter;6858,217165
+	uint8_t  port_id;6859,217197
+	cmdline_fixed_string_t dst_ip;6860,217216
+	cmdline_ipaddr_t dst_ip_value;6861,217248
+	cmdline_fixed_string_t src_ip;6862,217280
+	cmdline_ipaddr_t src_ip_value;6863,217312
+	cmdline_fixed_string_t dst_port;6864,217344
+	uint16_t dst_port_value;6865,217378
+	cmdline_fixed_string_t src_port;6866,217404
+	uint16_t src_port_value;6867,217438
+	cmdline_fixed_string_t protocol;6868,217464
+	uint8_t protocol_value;6869,217498
+	cmdline_fixed_string_t mask;6870,217523
+	uint8_t  mask_value;6871,217553
+	cmdline_fixed_string_t flags;6872,217575
+	uint8_t flags_value;6873,217606
+	cmdline_fixed_string_t priority;6874,217628
+	uint8_t  priority_value;6875,217662
+	cmdline_fixed_string_t queue;6876,217688
+	uint16_t  queue_id;6877,217719
+	cmdline_fixed_string_t index;6878,217740
+	uint16_t  index_value;6879,217771
+cmd_5tuple_filter_parsed(6883,217811
+cmdline_parse_token_num_t cmd_5tuple_filter_port_id 6940,219724
+cmdline_parse_token_string_t cmd_5tuple_filter_dst_ip 6943,219855
+cmdline_parse_token_ipaddr_t cmd_5tuple_filter_dst_ip_value 6946,219993
+cmdline_parse_token_string_t cmd_5tuple_filter_src_ip 6949,220133
+cmdline_parse_token_ipaddr_t cmd_5tuple_filter_src_ip_value 6952,220271
+cmdline_parse_token_string_t cmd_5tuple_filter_dst_port 6955,220411
+cmdline_parse_token_num_t cmd_5tuple_filter_dst_port_value 6958,220555
+cmdline_parse_token_string_t cmd_5tuple_filter_src_port 6961,220701
+cmdline_parse_token_num_t cmd_5tuple_filter_src_port_value 6964,220845
+cmdline_parse_token_string_t cmd_5tuple_filter_protocol 6967,220991
+cmdline_parse_token_num_t cmd_5tuple_filter_protocol_value 6970,221135
+cmdline_parse_token_string_t cmd_5tuple_filter_mask 6973,221280
+cmdline_parse_token_num_t cmd_5tuple_filter_mask_value 6976,221412
+cmdline_parse_token_string_t cmd_5tuple_filter_flags 6979,221548
+cmdline_parse_token_num_t cmd_5tuple_filter_flags_value 6982,221683
+cmdline_parse_token_string_t cmd_5tuple_filter_priority 6985,221822
+cmdline_parse_token_num_t cmd_5tuple_filter_priority_value 6988,221966
+cmdline_parse_token_string_t cmd_5tuple_filter_queue 6991,222111
+cmdline_parse_token_num_t cmd_5tuple_filter_queue_id 6994,222246
+cmdline_parse_token_string_t cmd_5tuple_filter_index 6997,222380
+cmdline_parse_token_num_t cmd_5tuple_filter_index_value 7000,222515
+cmdline_parse_token_string_t cmd_5tuple_filter_add_filter 7004,222656
+cmdline_parse_inst_t cmd_add_5tuple_filter 7007,222810
+cmdline_parse_token_string_t cmd_5tuple_filter_remove_filter 7038,223851
+cmdline_parse_inst_t cmd_remove_5tuple_filter 7041,224010
+cmdline_parse_token_string_t cmd_5tuple_filter_get_filter 7054,224335
+cmdline_parse_inst_t cmd_get_5tuple_filter 7057,224488
+struct cmd_flex_filter_result 7071,224843
+	cmdline_fixed_string_t filter;7072,224875
+	uint8_t port_id;7073,224907
+	cmdline_fixed_string_t len;7074,224925
+	uint8_t len_value;7075,224954
+	cmdline_fixed_string_t bytes;7076,224974
+	cmdline_fixed_string_t bytes_value;7077,225005
+	cmdline_fixed_string_t mask;7078,225042
+	cmdline_fixed_string_t mask_value;7079,225072
+	cmdline_fixed_string_t priority;7080,225108
+	uint8_t priority_value;7081,225142
+	cmdline_fixed_string_t queue;7082,225167
+	uint16_t queue_id;7083,225198
+	cmdline_fixed_string_t index;7084,225218
+	uint16_t index_value;7085,225249
+static int xdigit2val(7088,225276
+cmd_flex_filter_parsed(7101,225461
+cmdline_parse_token_num_t cmd_flex_filter_port_id 7210,228320
+cmdline_parse_token_string_t cmd_flex_filter_len 7213,228447
+cmdline_parse_token_num_t cmd_flex_filter_len_value 7216,228572
+cmdline_parse_token_string_t cmd_flex_filter_bytes 7219,228703
+cmdline_parse_token_string_t cmd_flex_filter_bytes_value 7222,228834
+cmdline_parse_token_string_t cmd_flex_filter_mask 7225,228974
+cmdline_parse_token_string_t cmd_flex_filter_mask_value 7228,229102
+cmdline_parse_token_string_t cmd_flex_filter_priority 7231,229240
+cmdline_parse_token_num_t cmd_flex_filter_priority_value 7234,229380
+cmdline_parse_token_string_t cmd_flex_filter_queue 7237,229521
+cmdline_parse_token_num_t cmd_flex_filter_queue_id 7240,229652
+cmdline_parse_token_string_t cmd_flex_filter_index 7243,229782
+cmdline_parse_token_num_t cmd_flex_filter_index_value 7246,229913
+cmdline_parse_token_string_t cmd_flex_filter_add_filter 7249,230049
+cmdline_parse_inst_t cmd_add_flex_filter 7252,230196
+cmdline_parse_token_string_t cmd_flex_filter_remove_filter 7275,230865
+cmdline_parse_inst_t cmd_remove_flex_filter 7278,231018
+cmdline_parse_token_string_t cmd_flex_filter_get_filter 7291,231329
+cmdline_parse_inst_t cmd_get_flex_filter 7294,231476
+cmdline_parse_ctx_t main_ctx[main_ctx7310,231893
+prompt(7437,237655
+cmd_reconfig_device_queue(7453,237902
+bypass_is_supported(7478,238633
+
+txonly.c,526
+#define UDP_SRC_PORT 76,2576
+#define UDP_DST_PORT 77,2602
+#define IP_SRC_ADDR 79,2629
+#define IP_DST_ADDR 80,2693
+#define IP_DEFTTL 82,2758
+#define IP_VERSION 83,2803
+#define IP_HDRLEN 84,2827
+#define IP_VHL_DEF 85,2905
+static struct ipv4_hdr  pkt_ip_hdr;87,2950
+static struct udp_hdr pkt_udp_hdr;88,3029
+tx_mbuf_alloc(91,3140
+copy_buf_to_pkt_segs(101,3311
+copy_buf_to_pkt(126,3901
+setup_pkt_udp_ip_headers(136,4167
+pkt_burst_transmit(195,5759
+tx_only_begin(298,8668
+struct fwd_engine tx_only_engine 308,8961
+
+macfwd.c,74
+pkt_burst_mac_forward(79,2665
+struct fwd_engine mac_fwd_engine 141,4358
+
+rxonly.c,195
+#define MAX_PKT_RX_FLAGS 72,2490
+static const char *pkt_rx_flag_names[pkt_rx_flag_names73,2518
+print_ether_addr(90,2769
+pkt_burst_receive(106,3145
+struct fwd_engine rx_only_engine 190,5340
+
+icmpecho.c,232
+arp_op_name(69,2340
+ip_proto_name(91,2774
+ether_addr_to_hexa(239,7566
+ipv4_addr_to_dot(251,7816
+ether_addr_dump(262,8080
+ipv4_addr_dump(273,8259
+reply_to_icmp_echo_rqsts(288,8552
+struct fwd_engine icmp_echo_engine 499,14602
+
+testpmd.h,4574
+#define _TESTPMD_H_35,1714
+#define main 39,1833
+#define RTE_PORT_ALL 43,1893
+#define RTE_TEST_RX_DESC_MAX 45,1943
+#define RTE_TEST_TX_DESC_MAX 46,1980
+#define RTE_PORT_STOPPED 48,2018
+#define RTE_PORT_STARTED 49,2062
+#define RTE_PORT_CLOSED 50,2106
+#define RTE_PORT_HANDLING 51,2150
+#define DEFAULT_MBUF_DATA_SIZE 57,2324
+#define RTE_MAX_SEGS_PER_PKT 63,2536
+#define MAX_PKT_BURST 65,2616
+#define DEF_PKT_BURST 66,2642
+#define DEF_MBUF_CACHE 68,2668
+#define CACHE_LINE_SIZE_ROUNDUP(70,2696
+#define NUMA_NO_CONFIG 73,2807
+#define UMA_NO_CONFIG 74,2835
+typedef uint8_t  lcoreid_t;76,2864
+typedef uint8_t  portid_t;77,2892
+typedef uint16_t queueid_t;78,2919
+typedef uint16_t streamid_t;79,2947
+#define MAX_QUEUE_ID 81,2977
+	PORT_TOPOLOGY_PAIRED,84,3043
+	PORT_TOPOLOGY_CHAINED,85,3066
+	PORT_TOPOLOGY_LOOP,86,3090
+struct pkt_burst_stats 94,3283
+	unsigned int pkt_burst_spread[pkt_burst_spread95,3308
+struct fwd_stream 103,3491
+	portid_t   rx_port;105,3535
+	queueid_t  rx_queue;106,3600
+	portid_t   tx_port;107,3661
+	queueid_t  tx_queue;108,3728
+	streamid_t peer_addr;109,3794
+	unsigned int rx_packets;112,3896
+	unsigned int tx_packets;113,3948
+	unsigned int fwd_dropped;114,4012
+	unsigned int rx_bad_ip_csum 115,4078
+	unsigned int rx_bad_l4_csum 116,4154
+	uint64_t     core_cycles;118,4269
+	struct pkt_burst_stats rx_burst_stats;121,4380
+	struct pkt_burst_stats tx_burst_stats;122,4420
+struct rte_port 135,4755
+	struct rte_eth_dev_info dev_info;136,4773
+	struct rte_eth_conf     dev_conf;137,4841
+	struct ether_addr       eth_addr;138,4906
+	struct rte_eth_stats    stats;139,4973
+	uint64_t                tx_dropped;140,5039
+	struct fwd_stream       *rx_stream;rx_stream141,5112
+	struct fwd_stream       *tx_stream;tx_stream142,5183
+	unsigned int            socket_id;143,5254
+	uint16_t                tx_ol_flags;144,5316
+	uint16_t                tx_vlan_id;145,5390
+	void                    *fwd_ctx;fwd_ctx146,5463
+	uint64_t                rx_bad_ip_csum;147,5532
+	uint64_t                rx_bad_l4_csum;148,5611
+	uint8_t                 tx_queue_stats_mapping_enabled;149,5689
+	uint8_t                 rx_queue_stats_mapping_enabled;150,5746
+	volatile uint16_t        port_status;151,5803
+	uint8_t                 need_reconfig;152,5873
+	uint8_t                 need_reconfig_queues;153,5953
+	uint8_t                 rss_flag;154,6041
+	uint8_t			dcb_flag;155,6104
+	struct rte_eth_rxconf   rx_conf;156,6146
+	struct rte_eth_txconf   tx_conf;157,6208
+struct fwd_lcore 167,6569
+	struct rte_mempool *mbp;mbp168,6588
+	streamid_t stream_idx;169,6656
+	streamid_t stream_nb;170,6727
+	lcoreid_t  cpuid_idx;171,6796
+	queueid_t  tx_queue;172,6868
+	volatile char stopped;173,6937
+typedef void (*port_fwd_begin_t)port_fwd_begin_t191,7536
+typedef void (*port_fwd_end_t)port_fwd_end_t192,7583
+typedef void (*packet_fwd_t)packet_fwd_t193,7628
+struct fwd_engine 195,7682
+	const char       *fwd_mode_name;fwd_mode_name196,7702
+	port_fwd_begin_t port_fwd_begin;197,7766
+	port_fwd_end_t   port_fwd_end;198,7839
+	packet_fwd_t     packet_fwd;199,7912
+struct fwd_config 221,8542
+	struct fwd_engine *fwd_eng;fwd_eng222,8562
+	streamid_t nb_fwd_streams;223,8623
+	lcoreid_t  nb_fwd_lcores;224,8695
+	portid_t   nb_fwd_ports;225,8764
+enum dcb_mode_enable231,8855
+	DCB_VT_ENABLED,233,8878
+	DCB_ENABLED234,8895
+struct dcb_config 240,8946
+	enum dcb_mode_enable dcb_mode;241,8966
+	uint8_t vt_en;242,8998
+	enum rte_eth_nb_tcs num_tcs;243,9014
+	uint8_t pfc_en;244,9044
+enum dcb_queue_mapping_mode 250,9132
+	DCB_VT_Q_MAPPING 251,9162
+	DCB_4_TCS_Q_MAPPING,252,9185
+	DCB_8_TCS_Q_MAPPING253,9207
+#define MAX_TX_QUEUE_STATS_MAPPINGS 256,9232
+#define MAX_RX_QUEUE_STATS_MAPPINGS 257,9314
+struct queue_stats_mappings 259,9398
+	uint8_t port_id;260,9428
+	uint16_t queue_id;261,9446
+	uint8_t stats_counter_id;262,9466
+} __rte_cache_aligned;263,9493
+#define MAX_SOCKET 290,10645
+uint8_t port_numa[port_numa296,10794
+uint8_t rxring_numa[rxring_numa302,10920
+uint8_t txring_numa[txring_numa308,11048
+#define TXONLY_DEF_PACKET_LEN 358,12513
+lcore_num(380,13403
+current_fwd_lcore(392,13647
+mbuf_poolname_build(399,13745
+mbuf_pool_find(405,13920
+port_pci_reg_read(417,14203
+#define port_id_pci_reg_read(429,14470
+port_pci_reg_write(433,14584
+#define port_id_pci_reg_write(443,14836
+#define RTE_BE_TO_CPU_16(556,19656
+#define RTE_CPU_TO_BE_16(557,19719
+#define RTE_BE_TO_CPU_16(560,19811
+#define RTE_CPU_TO_BE_16(561,19856
+#define RTE_BE_TO_CPU_16(563,19908
+#define RTE_CPU_TO_BE_16(565,20003
+
+csumonly.c,777
+#define IP_DEFTTL 78,2605
+#define IP_VERSION 79,2650
+#define IP_HDRLEN 80,2674
+#define IP_VHL_DEF 81,2752
+get_16b_sum(84,2820
+get_ipv4_cksum(106,3195
+get_ipv4_psd_sum 115,3403
+	union ipv4_psd_header 118,3496
+			uint32_t src_addr;120,3532
+			uint32_t dst_addr;121,3587
+			uint8_t  zero;122,3650
+			uint8_t  proto;123,3684
+			uint16_t len;124,3730
+		uint16_t u16_arr[u16_arr126,3802
+get_ipv6_psd_sum 139,4181
+	union ipv6_psd_header 142,4274
+			uint8_t src_addr[src_addr144,4310
+			uint8_t dst_addr[dst_addr145,4368
+			uint32_t len;146,4434
+			uint32_t proto;147,4476
+		uint16_t u16_arr[u16_arr150,4580
+get_ipv4_udptcp_checksum(162,4942
+get_ipv6_udptcp_checksum(181,5379
+pkt_burst_checksum_forward(205,5930
+struct fwd_engine csum_fwd_engine 461,13030
+
+flowgen.c,540
+static unsigned cfg_n_flows	77,2597
+static unsigned cfg_pkt_size	78,2633
+static uint32_t cfg_ip_src	79,2669
+static uint32_t cfg_ip_dst	80,2719
+static uint16_t cfg_udp_src	81,2769
+static uint16_t cfg_udp_dst	82,2805
+static struct ether_addr cfg_ether_src	83,2841
+static struct ether_addr cfg_ether_dst	85,2925
+#define IP_DEFTTL 88,3010
+#define IP_VERSION 89,3055
+#define IP_HDRLEN 90,3079
+#define IP_VHL_DEF 91,3157
+tx_mbuf_alloc(94,3234
+ip_sum(105,3417
+pkt_burst_flow_gen(131,3937
+struct fwd_engine flow_gen_engine 242,7162
+
+config.c,3082
+print_ethaddr(100,4050
+nic_stats_display(112,4453
+nic_stats_clear(192,7407
+nic_stats_mapping_display(204,7646
+port_infos_display(252,9089
+port_id_is_invalid(315,11123
+vlan_id_is_invalid(324,11297
+port_reg_off_is_invalid(333,11453
+reg_bit_pos_is_invalid(354,11990
+#define display_port_and_reg_off(362,12141
+display_port_reg_value(366,12285
+port_reg_bit_display(373,12485
+port_reg_bit_field_display(390,12910
+port_reg_display(420,13692
+port_reg_bit_set(433,13974
+port_reg_bit_field_set(458,14563
+port_reg_set(498,15593
+port_mtu_set(509,15869
+rx_queue_id_is_invalid(525,16151
+tx_queue_id_is_invalid(534,16325
+rx_desc_id_is_invalid(543,16499
+tx_desc_id_is_invalid(553,16693
+ring_dma_zone_lookup(563,16910
+union igb_ring_dword 578,17382
+	uint64_t dword;579,17405
+		uint32_t hi;581,17432
+		uint32_t lo;582,17447
+	} words;583,17462
+struct igb_ring_desc_32_bytes 586,17476
+	union igb_ring_dword lo_dword;587,17508
+	union igb_ring_dword hi_dword;588,17540
+	union igb_ring_dword resv1;589,17572
+	union igb_ring_dword resv2;590,17601
+struct igb_ring_desc_16_bytes 593,17634
+	union igb_ring_dword lo_dword;594,17666
+	union igb_ring_dword hi_dword;595,17698
+ring_rxd_display_dword(599,17746
+ring_rx_descriptor_display(606,17905
+ring_tx_descriptor_display(645,19032
+rx_ring_desc_display(661,19565
+tx_ring_desc_display(678,19963
+fwd_lcores_config_display(695,20352
+rxtx_config_display(705,20559
+port_rss_reta_info(731,21618
+port_rss_hash_conf_show(769,22552
+port_rss_hash_key_update(830,23932
+setup_fwd_config_of_each_lcore(861,24575
+simple_fwd_config_setup(901,25576
+rss_fwd_config_setup(972,28051
+dcb_rxq_2_txq_mapping(1040,29692
+dcb_fwd_config_setup(1094,31135
+icmp_echo_config_setup(1147,32482
+fwd_config_setup(1202,34097
+pkt_fwd_config_display(1220,34430
+fwd_config_display(1260,35768
+set_fwd_lcores_list(1271,35997
+set_fwd_lcores_mask(1311,36996
+set_fwd_lcores_number(1331,37369
+set_fwd_ports_list(1345,37739
+set_fwd_ports_mask(1378,38490
+set_fwd_ports_number(1398,38845
+set_nb_pkt_per_burst(1412,39203
+set_tx_pkt_segments(1426,39551
+list_pkt_forwarding_modes(1467,40698
+set_pkt_forwarding_mode(1486,41097
+set_verbose_level(1505,41497
+vlan_extend_set(1513,41683
+rx_vlan_strip_set(1535,42144
+rx_vlan_strip_set_on_queue(1557,42604
+rx_vlan_filter_set(1571,42955
+rx_vft_set(1593,43419
+rx_vlan_all_filter_set(1610,43796
+vlan_tpid_set(1621,44001
+tx_vlan_set(1637,44307
+tx_vlan_reset(1648,44539
+tx_vlan_pvid_set(1656,44674
+set_qmap(1665,44840
+tx_cksum_set(1717,46570
+fdir_add_signature_filter(1728,46903
+fdir_update_signature_filter(1746,47299
+fdir_remove_signature_filter(1764,47703
+fdir_get_infos(1782,48070
+fdir_add_perfect_filter(1809,48987
+fdir_update_perfect_filter(1827,49420
+fdir_remove_perfect_filter(1845,49868
+fdir_set_masks(1863,50268
+set_vf_traffic(1879,50586
+set_vf_rx_vlan(1901,51071
+set_queue_rate_limit(1917,51459
+set_vf_rate_limit(1939,52004
+get_ethertype_filter(1964,52580
+get_syn_filter(1991,53268
+get_2tuple_filter(2012,53733
+get_5tuple_filter(2041,54539
+get_flex_filter(2078,55742
+
+ieee1588fwd.c,3965
+struct ptpv2_msg 76,2584
+	uint8_t msg_id;77,2603
+	uint8_t version;78,2620
+	uint8_t unused[unused79,2659
+#define PTP_SYNC_MESSAGE 81,2683
+#define PTP_DELAY_REQ_MESSAGE 82,2727
+#define PTP_PATH_DELAY_REQ_MESSAGE 83,2771
+#define PTP_PATH_DELAY_RESP_MESSAGE 84,2815
+#define PTP_FOLLOWUP_MESSAGE 85,2859
+#define PTP_DELAY_RESP_MESSAGE 86,2903
+#define PTP_PATH_DELAY_FOLLOWUP_MESSAGE 87,2947
+#define PTP_ANNOUNCE_MESSAGE 88,2991
+#define PTP_SIGNALLING_MESSAGE 89,3035
+#define PTP_MANAGEMENT_MESSAGE 90,3079
+#define IGBE_82576_ETQF(115,4027
+#define IGBE_82576_ETQF_FILTER_ENABLE 116,4076
+#define IGBE_82576_ETQF_1588_TIMESTAMP 117,4125
+#define IGBE_82576_TSYNCRXCTL 119,4175
+#define IGBE_82576_TSYNCRXCTL_RXTS_ENABLE 120,4214
+#define IGBE_82576_RXSTMPL 122,4266
+#define IGBE_82576_RXSTMPH 123,4305
+#define IGBE_82576_RXSATRL 124,4344
+#define IGBE_82576_RXSATRH 125,4383
+#define IGBE_82576_TSYNCTXCTL 126,4422
+#define IGBE_82576_TSYNCTXCTL_TXTS_ENABLE 127,4461
+#define IGBE_82576_TXSTMPL 129,4513
+#define IGBE_82576_TXSTMPH 130,4552
+#define IGBE_82576_SYSTIML 131,4591
+#define IGBE_82576_SYSTIMH 132,4630
+#define IGBE_82576_TIMINCA 133,4669
+#define IGBE_82576_TIMADJL 134,4708
+#define IGBE_82576_TIMADJH 135,4747
+#define IGBE_82576_TSAUXC 136,4786
+#define IGBE_82576_TRGTTIML0 137,4825
+#define IGBE_82576_TRGTTIMH0 138,4864
+#define IGBE_82576_TRGTTIML1 139,4903
+#define IGBE_82576_TRGTTIMH1 140,4942
+#define IGBE_82576_AUXSTMPL0 141,4981
+#define IGBE_82576_AUXSTMPH0 142,5020
+#define IGBE_82576_AUXSTMPL1 143,5059
+#define IGBE_82576_AUXSTMPH1 144,5098
+#define IGBE_82576_TSYNCRXCFG 145,5137
+#define IGBE_82576_TSSDP 146,5176
+#define IXGBE_82599_ETQF(151,5291
+#define IXGBE_82599_ETQF_FILTER_ENABLE 152,5341
+#define IXGBE_82599_ETQF_1588_TIMESTAMP 153,5391
+#define IXGBE_82599_TSYNCRXCTL 155,5442
+#define IXGBE_82599_TSYNCRXCTL_RXTS_ENABLE 156,5481
+#define IXGBE_82599_RXSTMPL 158,5534
+#define IXGBE_82599_RXSTMPH 159,5573
+#define IXGBE_82599_RXSATRL 160,5612
+#define IXGBE_82599_RXSATRH 161,5651
+#define IXGBE_82599_RXMTRL 162,5690
+#define IXGBE_82599_TSYNCTXCTL 163,5729
+#define IXGBE_82599_TSYNCTXCTL_TXTS_ENABLE 164,5768
+#define IXGBE_82599_TXSTMPL 166,5821
+#define IXGBE_82599_TXSTMPH 167,5860
+#define IXGBE_82599_SYSTIML 168,5899
+#define IXGBE_82599_SYSTIMH 169,5938
+#define IXGBE_82599_TIMINCA 170,5977
+#define IXGBE_82599_TIMADJL 171,6016
+#define IXGBE_82599_TIMADJH 172,6055
+#define IXGBE_82599_TSAUXC 173,6094
+#define IXGBE_82599_TRGTTIML0 174,6133
+#define IXGBE_82599_TRGTTIMH0 175,6172
+#define IXGBE_82599_TRGTTIML1 176,6211
+#define IXGBE_82599_TRGTTIMH1 177,6250
+#define IXGBE_82599_AUXSTMPL0 178,6289
+#define IXGBE_82599_AUXSTMPH0 179,6328
+#define IXGBE_82599_AUXSTMPL1 180,6367
+#define IXGBE_82599_AUXSTMPH1 181,6406
+#define ETQF_FILTER_1588_REG 186,6510
+#define IEEE1588_TIMINCA_INIT 192,6636
+typedef void (*ieee1588_start_t)ieee1588_start_t197,6763
+typedef void (*ieee1588_stop_t)ieee1588_stop_t198,6842
+typedef int  (*tmst_read_t)tmst_read_t199,6921
+struct port_ieee1588_ops 201,7003
+	ieee1588_start_t ieee1588_start;202,7030
+	ieee1588_stop_t  ieee1588_stop;203,7064
+	tmst_read_t      rx_tmst_read;204,7097
+	tmst_read_t      tx_tmst_read;205,7129
+igbe_82576_ieee1588_start(212,7220
+igbe_82576_ieee1588_stop(247,8232
+igbe_82576_rx_timestamp_read(292,9490
+igbe_82576_tx_timestamp_read(324,10394
+static struct port_ieee1588_ops igbe_82576_ieee1588_ops 340,10823
+ixgbe_82599_ieee1588_start(351,11132
+ixgbe_82599_ieee1588_stop(385,12105
+ixgbe_82599_rx_timestamp_read(430,13372
+ixgbe_82599_tx_timestamp_read(462,14281
+static struct port_ieee1588_ops ixgbe_82599_ieee1588_ops 478,14714
+port_ieee1588_rx_timestamp_check(486,14984
+#define MAX_TX_TMST_WAIT_MICROSECS 501,15379
+port_ieee1588_tx_timestamp_check(504,15455
+ieee1588_packet_fwd(530,16193
+port_ieee1588_fwd_begin(629,18865
+port_ieee1588_fwd_end(642,19171
+struct fwd_engine ieee1588_fwd_engine 650,19340
+
+testpmd.c,4322
+uint16_t verbose_level 82,2684
+uint8_t interactive 85,2781
+uint8_t auto_start 86,2806
+uint8_t numa_support 95,3119
+uint8_t socket_num 101,3279
+uint8_t mp_anon 106,3402
+struct ether_addr peer_eth_addrs[peer_eth_addrs114,3606
+portid_t nb_peer_eth_addrs 115,3658
+struct rte_port *ports;ports120,3728
+portid_t nb_ports;121,3798
+struct fwd_lcore **fwd_lcores;fwd_lcores122,3870
+lcoreid_t nb_lcores;123,3939
+lcoreid_t nb_cfg_lcores;130,4151
+lcoreid_t nb_fwd_lcores;131,4220
+portid_t  nb_cfg_ports;132,4289
+portid_t  nb_fwd_ports;133,4350
+unsigned int fwd_lcores_cpuids[fwd_lcores_cpuids135,4412
+portid_t fwd_ports_ids[fwd_ports_ids136,4490
+struct fwd_stream **fwd_streams;fwd_streams138,4570
+streamid_t nb_fwd_streams;139,4643
+struct fwd_engine * fwd_engines[fwd_engines144,4748
+struct fwd_config cur_fwd_config;160,5026
+struct fwd_engine *cur_fwd_eng cur_fwd_eng161,5060
+uint16_t mbuf_data_size 163,5138
+uint32_t param_total_num_mbufs 164,5218
+uint16_t tx_pkt_length 170,5448
+uint16_t tx_pkt_seg_lengths[tx_pkt_seg_lengths171,5526
+uint8_t  tx_pkt_nb_segs 174,5607
+uint16_t nb_pkt_per_burst 176,5682
+uint16_t mb_mempool_cache 177,5762
+uint8_t dcb_config 180,5918
+uint8_t dcb_test 183,5986
+enum dcb_queue_mapping_mode dcb_q_mapping 186,6051
+queueid_t nb_rxq 191,6161
+queueid_t nb_txq 192,6221
+#define RTE_TEST_RX_DESC_DEFAULT 197,6339
+#define RTE_TEST_TX_DESC_DEFAULT 198,6376
+uint16_t nb_rxd 199,6413
+uint16_t nb_txd 200,6491
+#define RX_PTHRESH 205,6639
+#define RX_HTHRESH 206,6717
+#define RX_WTHRESH 207,6791
+#define TX_PTHRESH 209,6872
+#define TX_HTHRESH 210,6951
+#define TX_WTHRESH 211,7025
+struct rte_eth_thresh rx_thresh 213,7106
+struct rte_eth_thresh tx_thresh 219,7218
+uint16_t rx_free_thresh 228,7381
+uint8_t rx_drop_en 233,7509
+uint16_t tx_free_thresh 238,7635
+uint16_t tx_rs_thresh 243,7744
+uint32_t txq_flags 248,7846
+uint64_t rss_hf 253,7943
+uint16_t port_topology 258,8037
+uint8_t no_flush_rx 263,8190
+uint8_t no_link_check 268,8308
+uint32_t bypass_timeout 276,8470
+struct rte_eth_rxmode rx_mode 283,8566
+struct rte_fdir_conf fdir_conf 295,9095
+volatile int test_done 303,9278
+struct queue_stats_mappings tx_queue_stats_mappings_array[tx_queue_stats_mappings_array305,9351
+struct queue_stats_mappings rx_queue_stats_mappings_array[rx_queue_stats_mappings_array306,9439
+struct queue_stats_mappings *tx_queue_stats_mappings tx_queue_stats_mappings308,9528
+struct queue_stats_mappings *rx_queue_stats_mappings rx_queue_stats_mappings309,9614
+uint16_t nb_tx_queue_stats_mappings 311,9701
+uint16_t nb_rx_queue_stats_mappings 312,9742
+set_default_fwd_lcores_config(328,10176
+set_def_peer_eth_addrs(347,10530
+set_default_fwd_ports_config(358,10734
+set_def_fwd_config(370,10926
+struct mbuf_ctor_arg 380,11113
+	uint16_t seg_buf_offset;381,11136
+	uint16_t seg_buf_size;382,11210
+struct mbuf_pool_ctor_arg 385,11278
+	uint16_t seg_buf_size;386,11306
+testpmd_mbuf_ctor(390,11384
+testpmd_mbuf_pool_ctor(416,12149
+mbuf_pool_create(434,12736
+check_socket_id(492,14637
+init_config(509,15027
+reconfig(630,18197
+init_fwd_streams(655,18716
+pkt_burst_stats_display(731,20725
+fwd_port_stats_display(785,22396
+fwd_stream_stats_display(886,26133
+flush_fwd_rx_queues(915,27084
+run_pkt_fwd_on_lcore(942,27691
+start_pkt_forward_on_core(957,27999
+run_one_txonly_burst_on_core(969,28327
+launch_packet_forwarding(987,28751
+start_packet_forwarding(1016,29497
+stop_packet_forwarding(1100,31767
+dev_set_link_up(1244,36240
+dev_set_link_down(1251,36363
+all_ports_started(1258,36498
+start_port(1275,36785
+stop_port(1429,40893
+close_port(1468,41714
+all_ports_stopped(1502,42366
+pmd_test_exit(1517,42570
+typedef void (*cmd_func_t)cmd_func_t1530,42789
+struct pmd_test_command 1531,42823
+	const char *cmd_name;cmd_name1532,42849
+	cmd_func_t cmd_func;1533,42872
+#define PMD_TEST_CMD_NB 1536,42898
+check_all_ports_link_status(1540,43063
+#define CHECK_INTERVAL 1542,43131
+#define MAX_CHECK_TIME 1543,43170
+set_tx_queue_stats_mapping_registers(1592,44457
+set_rx_queue_stats_mapping_registers(1615,45057
+map_port_queue_stats_mapping_registers(1638,45658
+init_port_config(1670,46467
+const uint16_t vlan_tags[vlan_tags1712,47672
+get_eth_dcb_conf(1720,47853
+init_port_dcb_config(1797,50559
+#define main 1843,51785
+main(1847,51816
+
+parameters.c,809
+usage(85,2729
+init_peer_eth_addrs(209,9013
+parse_fwd_coremask(243,9731
+parse_fwd_portmask(262,10255
+parse_queue_stats_mapping_config(278,10594
+	enum fieldnames 283,10714
+		FLD_PORT 284,10733
+		FLD_QUEUE,285,10749
+		FLD_STATS_COUNTER,286,10762
+		_NUM_FLD287,10783
+parse_portnuma_config(364,13232
+	enum fieldnames 371,13376
+		FLD_PORT 372,13395
+		FLD_SOCKET,373,13411
+		_NUM_FLD374,13425
+parse_ringnuma_config(416,14375
+	enum fieldnames 423,14529
+		FLD_PORT 424,14548
+		FLD_FLAG,425,14564
+		FLD_SOCKET,426,14576
+		_NUM_FLD427,14590
+	#define RX_RING_ONLY 431,14665
+	#define TX_RING_ONLY 432,14691
+	#define RXTX_RING 433,14717
+parse_item_list(494,16174
+launch_args_parse(540,17059
+	enum { TX,545,17146
+	enum { TX, RX 545,17146
+#define SHORTOPTS 609,19066
+#define SHORTOPTS 611,19094
+
+mempool_anon.c,180
+#define	PAGEMAP_FNAME	46,1883
+#define	PAGEMAP_PFN_BITS	52,2025
+#define	PAGEMAP_PFN_MASK	53,2053
+get_phys_map(57,2135
+mempool_anon_create(86,2750
+mempool_anon_create(187,5205
+
+macswap.c,72
+pkt_burst_mac_swap(78,2625
+struct fwd_engine mac_swap_engine 143,4382
+
+mempool_osdep.h,34
+#define _MEMPOOL_OSDEP_H_35,1720
+
+iofwd.c,72
+pkt_burst_io_forward(79,2671
+struct fwd_engine io_fwd_engine 124,3798
+
+macfwd-retry.c,229
+#define BURST_TX_WAIT_US 73,2510
+#define BURST_TX_RETRIES 74,2538
+uint32_t burst_tx_delay_time 80,2664
+uint32_t burst_tx_retry_num 81,2713
+pkt_burst_mac_retry_forward(89,2967
+struct fwd_engine mac_retry_fwd_engine 160,4764

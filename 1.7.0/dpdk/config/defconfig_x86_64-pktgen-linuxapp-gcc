@@ -1,0 +1,10 @@
+#include "defconfig_x86_64-native-linuxapp-gcc"
+
+CONFIG_WR_PKTGEN=y
+
+##
+# Pktgen support configuration
+##
+# Not working yet
+CONFIG_INCLUDE_PING6=n
+

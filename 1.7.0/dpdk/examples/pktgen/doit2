@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Normal setup
+#   different cores for each port.
+./build/app/pktgen -c 1f00 -n 3 --proc-type auto --socket-mem 128,128 --file-prefix pg2 -- -p 0x30 -P -m "{9:11}.0, {10:12}.1"
