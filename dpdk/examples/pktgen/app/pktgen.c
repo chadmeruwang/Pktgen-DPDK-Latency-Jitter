@@ -294,12 +294,13 @@ pktgen_send_burst(port_info_t * info, uint16_t qid)
 	flags	= rte_atomic32_read(&info->port_flags);
 	do {
 		if ( unlikely(flags & SEND_RANDOM_PKTS) )
-			pktgen_rnd_bits_apply(pkts, cnt, info->rnd_bitfields);
+		  /*a quick fix to checksum issue*/
+		  //pktgen_rnd_bits_apply(pkts, cnt, info->rnd_bitfields);
 #ifdef JITTER_CHECK
                 /*
                  * JITTER: Add timestamp as data to the packet
                  */
-
+                /* the commented lines are left intentionally for debugging purposes for now*/
                 //uint64_t now = rte_rdtsc();
                 for(i = 0; i < cnt; i++) {
                   //uint64_t now = rte_rdtsc();
